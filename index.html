@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ninja Adventure - Japon Médiéval</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { margin: 0; overflow: hidden; background: #1a1a1a; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        canvas { display: block; background: linear-gradient(to bottom, #87CEEB, #E0F6FF); }
+        .unselectable { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+        
+        #shuriken-transition {
+            pointer-events: none;
+            display: none;
+            z-index: 100;
+        }
+        @keyframes shuriken-spin-grow {
+            0% { transform: translate(-50%, -50%) rotate(0deg) scale(0); opacity: 1; }
+            50% { transform: translate(-50%, -50%) rotate(720deg) scale(15); opacity: 1; }
+            100% { transform: translate(-50%, -50%) rotate(1440deg) scale(20); opacity: 0; }
+        }
+        .shuriken-animate {
+            display: block !important;
+            animation: shuriken-spin-grow 1.5s ease-in-out forwards;
+        }
+
+        .num-btn {
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            padding: 6px;
+            transition: all 0.1s;
+        }
+        .num-btn:active {
+            background: #e5e7eb;
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+
+    <div id="game-container" class="relative bg-white shadow-2xl overflow-hidden rounded-lg" style="width: 800px; height: 450px;">
+        <canvas id="gameCanvas" width="800" height="450"></canvas>
+
+        <!-- Transition Shuriken -->
+        <div id="shuriken-transition" class="absolute top-1/2 left-1/2">
+            <svg width="100" height="100" viewBox="0 0 100 100" fill="currentColor" class="text-gray-800">
+                <path d="M50 0 L60 40 L100 50 L60 60 L50 100 L40 60 L0 50 L40 40 Z" />
+                <circle cx="50" cy="50" r="8" fill="white" />
+            </svg>
+        </div>
+
+        <!-- Ecran de démarrage -->
+        <div id="start-screen" class="absolute inset-0 bg-black bg-opacity-80 flex flex-col items-center justify-center text-white z-50">
+            <h1 class="text-5xl font-bold mb-6 text-red-500 tracking-tighter uppercase italic text-center">Ninja Adventure</h1>
+            <p class="mb-8 text-lg">Le Maître du Shinobi</p>
+            <button id="btn-play" class="px-10 py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-full text-2xl transition-transform transform hover:scale-110 shadow-lg">COMMENCER</button>
+        </div>
+
+        <!-- Interface -->
+        <div id="ui-overlay" class="absolute top-4 left-4 right-4 flex justify-between items-start pointer-events-none hidden">
+            <div class="flex flex-col gap-2">
+                <div id="health-bar" class="flex gap-1 text-3xl">🏮🏮🏮</div>
+                <div class="bg-black bg-opacity-50 px-3 py-1 rounded text-white font-bold">Points: <span id="score-val">0</span> / 100</div>
+                <div class="bg-black bg-opacity-50 px-3 py-1 rounded text-white font-bold">Étape: <span id="level-val">1</span> / 5</div>
+            </div>
+        </div>
+
+        <!-- Modale Math avec Pavé Compact -->
+        <div id="modal-math" class="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-40">
+            <div class="bg-white p-4 rounded-xl text-center max-w-[280px] w-full mx-4 shadow-2xl border-4 border-yellow-600">
+                <h2 class="text-sm font-bold mb-2 uppercase text-gray-600 tracking-widest">Énigme du Scribe</h2>
+                <div id="math-question" class="text-2xl font-mono mb-2 bg-yellow-50 py-1 rounded border border-yellow-200"></div>
+                <div id="math-display" class="text-3xl font-bold mb-3 h-10 flex items-center justify-center text-red-600 border-b-2 border-gray-100"></div>
+
+                <div class="grid grid-cols-3 gap-1.5 mb-2">
+                    <button class="num-btn" onclick="addDigit(1)">1</button>
+                    <button class="num-btn" onclick="addDigit(2)">2</button>
+                    <button class="num-btn" onclick="addDigit(3)">3</button>
+                    <button class="num-btn" onclick="addDigit(4)">4</button>
+                    <button class="num-btn" onclick="addDigit(5)">5</button>
+                    <button class="num-btn" onclick="addDigit(6)">6</button>
+                    <button class="num-btn" onclick="addDigit(7)">7</button>
+                    <button class="num-btn" onclick="addDigit(8)">8</button>
+                    <button class="num-btn" onclick="addDigit(9)">9</button>
+                    <button class="num-btn bg-red-50" onclick="clearDigits()">C</button>
+                    <button class="num-btn" onclick="addDigit(0)">0</button>
+                    <button id="btn-math-val" class="num-btn bg-green-500 text-white" onclick="validateMath()">OK</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modale Pendu -->
+        <div id="modal-word" class="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-40">
+            <div class="bg-white p-6 rounded-xl text-center max-w-md w-full mx-4 shadow-2xl border-4 border-gray-700">
+                <h2 class="text-xl font-bold mb-2">Défi du Silence</h2>
+                <div id="hangman-word" class="text-3xl tracking-[0.3em] font-mono mb-4 text-gray-800"></div>
+                <div id="hangman-tries" class="text-red-500 font-bold mb-4">Erreurs restantes: 10</div>
+                <div id="keyboard" class="grid grid-cols-7 gap-1 mb-4"></div>
+                <p id="word-reveal" class="text-red-600 font-bold hidden mb-2"></p>
+            </div>
+        </div>
+
+        <!-- Fin -->
+        <div id="final-cinematic" class="absolute inset-0 bg-white flex flex-col items-center justify-center hidden z-50 overflow-hidden">
+             <div class="relative w-full h-full bg-red-50">
+                <div id="cine-ninja" class="absolute bottom-10 left-0 text-5xl">🥷</div>
+                <div class="absolute bottom-10 right-20 text-5xl">🎎</div>
+                <div class="absolute bottom-0 w-full h-10 bg-green-800"></div>
+                <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <h2 class="text-4xl font-black text-red-700 mb-4 text-center">LÉGENDE ACCOMPLIE</h2>
+                    <p class="text-lg text-gray-700 max-w-xs text-center">Vous avez libéré les 5 dragons gardiens.</p>
+                </div>
+             </div>
+        </div>
+
+        <!-- Contrôles Mobiles -->
+        <div id="mobile-controls" class="absolute bottom-4 left-4 right-4 flex justify-between pointer-events-none unselectable md:hidden">
+            <div class="flex gap-2 pointer-events-auto">
+                <button id="btn-left" class="w-14 h-14 bg-white bg-opacity-30 rounded-full flex items-center justify-center text-2xl">⬅️</button>
+                <button id="btn-right" class="w-14 h-14 bg-white bg-opacity-30 rounded-full flex items-center justify-center text-2xl">➡️</button>
+            </div>
+            <div class="flex gap-2 pointer-events-auto">
+                <button id="btn-jump" class="w-16 h-16 bg-blue-500 bg-opacity-50 rounded-full flex items-center justify-center text-3xl">⬆️</button>
+                <button id="btn-shoot" class="w-16 h-16 bg-red-500 bg-opacity-50 rounded-full flex items-center justify-center text-3xl">✴️</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(freq, type, duration, vol = 0.1) {
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch(e) {}
+        }
+
+        const sounds = {
+            jump: () => playSound(400, 'square', 0.2),
+            star: () => playSound(880, 'sine', 0.15, 0.2),
+            hit: () => playSound(150, 'sawtooth', 0.3),
+            shoot: () => playSound(1200, 'sine', 0.1, 0.05),
+            puzzleWin: () => {
+                playSound(523, 'sine', 0.1, 0.2);
+                setTimeout(() => playSound(659, 'sine', 0.1, 0.2), 100);
+                setTimeout(() => playSound(783, 'sine', 0.3, 0.2), 200);
+            },
+            puzzleFail: () => {
+                playSound(200, 'sawtooth', 0.2, 0.2);
+                setTimeout(() => playSound(150, 'sawtooth', 0.4, 0.2), 150);
+            },
+            bossFree: () => playSound(300, 'sawtooth', 0.5)
+        };
+
+        const state = {
+            playing: false,
+            level: 1,
+            score: 0,
+            lives: 3,
+            cameraX: 0,
+            keys: {},
+            stars: [],
+            puzzles: [],
+            shurikens: [],
+            fireballs: [],
+            platforms: [],
+            boss: null,
+            cage: null,
+            shurikenCooldown: 0,
+            animationFrame: 0,
+            win: false,
+            transitioning: false,
+            mathInput: "",
+            wordBank: ["NINJA", "SAMURAI", "KATANA", "SHURIKEN", "DRAGON", "SUSHI", "DOJO", "SENSEI", "KIMONO", "SABRE", "OMBRE", "SILENCE", "FORCE", "COURAGE", "VICTOIRE", "ESPRIT", "MAITRE", "COMBAT", "VOIE", "PANDA", "TEMPLE", "RITUEL"],
+            usedWords: []
+        };
+
+        const config = {
+            gravity: 0.6,
+            jumpForce: -14,
+            speed: 5,
+            levelWidth: 3000,
+            dragonMaxHP: 3
+        };
+
+        window.addDigit = (n) => {
+            if (state.mathInput.length < 4) {
+                state.mathInput += n;
+                document.getElementById('math-display').innerText = state.mathInput;
+                playSound(800, 'sine', 0.03, 0.03);
+            }
+        };
+        window.clearDigits = () => {
+            state.mathInput = "";
+            document.getElementById('math-display').innerText = "";
+        };
+        window.validateMath = () => {
+            const val = parseInt(state.mathInput);
+            const success = (val === state.mathAns);
+            if (success) sounds.puzzleWin(); else sounds.puzzleFail();
+            closePuzzle(success);
+            state.mathInput = "";
+            document.getElementById('math-display').innerText = "";
+        };
+
+        class Ninja {
+            constructor() {
+                this.x = 100;
+                this.y = 300;
+                this.w = 40;
+                this.h = 60;
+                this.vx = 0;
+                this.vy = 0;
+                this.grounded = false;
+                this.frame = 0;
+                this.facing = 1; 
+                this.invul = 0;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x - state.cameraX + this.w / 2, this.y + this.h / 2);
+                if (this.facing === -1) ctx.scale(-1, 1);
+                if (this.invul % 10 > 5) ctx.globalAlpha = 0.3;
+
+                let legMove = Math.sin(this.frame * 0.2) * 12;
+                if (Math.abs(this.vx) < 0.1) legMove = 0;
+                
+                ctx.strokeStyle = "#111";
+                ctx.lineWidth = 7;
+                ctx.lineCap = "round";
+                ctx.beginPath();
+                ctx.moveTo(5, 10); ctx.lineTo(5 - legMove, 28); ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(-5, 10); ctx.lineTo(-5 + legMove, 28); ctx.stroke();
+
+                ctx.fillStyle = "#1a1a1a";
+                ctx.beginPath();
+                ctx.roundRect(-16, -26, 32, 42, 4);
+                ctx.fill();
+                
+                ctx.fillStyle = "#8b0000";
+                ctx.fillRect(-17, -2, 34, 6);
+
+                ctx.fillStyle = "#1a1a1a";
+                ctx.beginPath();
+                ctx.roundRect(-12, -42, 24, 20, 5);
+                ctx.fill();
+
+                ctx.fillStyle = "#ffdbac";
+                ctx.fillRect(-10, -36, 20, 6);
+                ctx.fillStyle = "#000";
+                ctx.fillRect(-6, -34, 4, 2);
+                ctx.fillRect(2, -34, 4, 2);
+
+                ctx.fillStyle = "#b22222";
+                ctx.beginPath();
+                ctx.moveTo(-10, -38);
+                let wave = Math.sin(state.animationFrame * 0.15) * 8;
+                ctx.quadraticCurveTo(-25, -45 + wave, -45, -35 + wave);
+                ctx.lineTo(-43, -30 + wave);
+                ctx.quadraticCurveTo(-25, -40 + wave, -10, -34);
+                ctx.fill();
+
+                let armMove = Math.cos(this.frame * 0.2) * 10;
+                if (Math.abs(this.vx) < 0.1) armMove = 0;
+                ctx.strokeStyle = "#111";
+                ctx.lineWidth = 6;
+                ctx.beginPath();
+                ctx.moveTo(-10, -15); ctx.lineTo(-18 - armMove, 0); ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(10, -15); ctx.lineTo(18 + armMove, 0); ctx.stroke();
+
+                ctx.restore();
+            }
+
+            update() {
+                if (state.transitioning) return;
+                
+                if (state.keys['ArrowLeft'] || state.keys['left']) { this.vx = -config.speed; this.facing = -1; this.frame++; }
+                else if (state.keys['ArrowRight'] || state.keys['right']) { this.vx = config.speed; this.facing = 1; this.frame++; }
+                else { this.vx = 0; }
+
+                if ((state.keys['ArrowUp'] || state.keys['jump']) && this.grounded) {
+                    this.vy = config.jumpForce;
+                    this.grounded = false;
+                    sounds.jump();
+                }
+
+                if ((state.keys[' '] || state.keys['shoot']) && state.shurikenCooldown <= 0) {
+                    state.shurikens.push({ x: this.x + (this.facing === 1 ? 40 : -10), y: this.y + 20, vx: this.facing * 10, angle: 0 });
+                    state.shurikenCooldown = 20;
+                    sounds.shoot();
+                }
+
+                this.vy += config.gravity;
+                this.x += this.vx;
+                this.y += this.vy;
+
+                if (this.x < 0) this.x = 0;
+                if (this.x > config.levelWidth - 100) this.x = config.levelWidth - 100;
+
+                this.grounded = false;
+                
+                // Plateformes standard
+                state.platforms.forEach(p => {
+                    if (this.x + this.w > p.x && this.x < p.x + p.w && this.y + this.h >= p.y && this.y + this.h <= p.y + 20 && this.vy >= 0) {
+                        this.y = p.y - this.h;
+                        this.vy = 0;
+                        this.grounded = true;
+                    }
+                });
+
+                // Cage solide tant que non libéré
+                if (!state.boss.freed) {
+                    const c = state.cage;
+                    if (this.x + this.w > c.x && this.x < c.x + c.w && this.y + this.h >= c.y && this.y + this.h <= c.y + 20 && this.vy >= 0) {
+                        this.y = c.y - this.h;
+                        this.vy = 0;
+                        this.grounded = true;
+                    }
+                }
+
+                if (this.y > 350) { this.y = 350; this.vy = 0; this.grounded = true; }
+                if (this.invul > 0) this.invul--;
+            }
+        }
+
+        class Boss {
+            constructor() {
+                this.x = 2585;
+                this.y = 325;
+                this.w = 80;
+                this.h = 80;
+                this.hp = config.dragonMaxHP;
+                this.freed = false;
+                this.dir = 1;
+                this.attackTimer = 0;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x - state.cameraX + 40, this.y + 40);
+                if (this.dir === 1) ctx.scale(-1, 1);
+                ctx.font = "80px Arial";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText("🐉", 0, 0);
+                ctx.restore();
+
+                if (this.freed) {
+                    ctx.fillStyle = "#eee";
+                    ctx.fillRect(this.x - state.cameraX, this.y - 20, 80, 8);
+                    ctx.fillStyle = "red";
+                    ctx.fillRect(this.x - state.cameraX, this.y - 20, 80 * (this.hp / config.dragonMaxHP), 8);
+                }
+            }
+
+            update() {
+                if (state.transitioning) return;
+                if (!this.freed) {
+                    if (state.score >= 100) {
+                        this.freed = true;
+                        sounds.bossFree();
+                    }
+                    return;
+                }
+                this.x += this.dir * (2 + state.level * 0.5);
+                if (this.x < 2400 || this.x > 2850) this.dir *= -1;
+                this.attackTimer++;
+                if (this.attackTimer > 100 - (state.level * 10)) {
+                    state.fireballs.push({ x: this.x + 40, y: this.y + 40, vx: (state.ninja.x < this.x ? -4 : 4), vy: 0 });
+                    this.attackTimer = 0;
+                }
+            }
+        }
+
+        function initLevel() {
+            state.score = 0;
+            state.stars = [];
+            state.puzzles = [];
+            state.platforms = [];
+            state.shurikens = [];
+            state.fireballs = [];
+            state.ninja = new Ninja();
+            state.boss = new Boss();
+            state.cameraX = 0;
+            state.shurikenCooldown = 0;
+
+            for (let i = 0; i < 15; i++) {
+                state.stars.push({ x: 300 + i * 160, y: 150 + Math.random() * 150, collected: false });
+            }
+
+            for (let i = 0; i < 4; i++) {
+                state.puzzles.push({ x: 500 + i * 500, y: 340, type: i % 2 === 0 ? 'math' : 'word', solved: false });
+            }
+
+            state.platforms.push({ x: 0, y: 410, w: config.levelWidth, h: 40 }); 
+            for (let i = 0; i < 10; i++) {
+                state.platforms.push({ x: 300 + i * 220, y: 300 - (i % 3) * 40, w: 120, h: 20 });
+            }
+            // Cage Position
+            state.cage = { x: 2550, y: 310, w: 150, h: 100 };
+            document.getElementById('level-val').innerText = state.level;
+            updateUI();
+        }
+
+        function updateUI() {
+            document.getElementById('score-val').innerText = state.score;
+            document.getElementById('health-bar').innerText = "🏮".repeat(Math.max(0, state.lives));
+        }
+
+        function checkCollisions() {
+            if (state.transitioning) return;
+            const n = state.ninja;
+            state.stars.forEach(s => {
+                if (!s.collected && n.x < s.x + 30 && n.x + n.w > s.x && n.y < s.y + 30 && n.y + n.h > s.y) {
+                    s.collected = true;
+                    state.score += 5;
+                    sounds.star();
+                    updateUI();
+                }
+            });
+            state.puzzles.forEach(p => {
+                if (!p.solved && n.x < p.x + 40 && n.x + n.w > p.x && n.y < p.y + 40 && n.y + n.h > p.y) openPuzzle(p);
+            });
+            if (state.boss.freed) {
+                if (n.x < state.boss.x + 80 && n.x + n.w > state.boss.x && n.y < state.boss.y + 80 && n.y + n.h > state.boss.y) {
+                    if (n.vy > 0 && (n.y + n.h) < (state.boss.y + 50)) {
+                        state.boss.hp--;
+                        n.vy = -12;
+                        sounds.hit();
+                    } else if (n.invul === 0) takeDamage();
+                }
+                state.fireballs.forEach((f, i) => {
+                    if (n.invul === 0 && n.x < f.x + 20 && n.x + n.w > f.x && n.y < f.y + 20 && n.y + n.h > f.y) {
+                        takeDamage();
+                        state.fireballs.splice(i, 1);
+                    }
+                });
+                state.shurikens.forEach((s, si) => {
+                    if (s.x < state.boss.x + 80 && s.x > state.boss.x && s.y < state.boss.y + 80 && s.y > state.boss.y) {
+                        state.boss.hp--;
+                        state.shurikens.splice(si, 1);
+                        sounds.hit();
+                    }
+                });
+                if (state.boss.hp <= 0) nextLevel();
+            }
+        }
+
+        function takeDamage() {
+            state.lives--;
+            state.ninja.invul = 100;
+            sounds.hit();
+            updateUI();
+            if (state.lives <= 0) { state.lives = 3; initLevel(); }
+        }
+
+        function nextLevel() {
+            if (state.transitioning) return;
+            state.transitioning = true;
+            document.getElementById('shuriken-transition').classList.add('shuriken-animate');
+            setTimeout(() => {
+                if (state.level < 5) {
+                    state.level++;
+                    initLevel();
+                    state.transitioning = false;
+                } else {
+                    state.win = true;
+                    state.playing = false;
+                    document.getElementById('final-cinematic').classList.remove('hidden');
+                    animateFinal();
+                }
+            }, 750);
+            setTimeout(() => document.getElementById('shuriken-transition').classList.remove('shuriken-animate'), 1500);
+        }
+
+        function openPuzzle(p) {
+            state.currentPuzzle = p;
+            state.playing = false;
+            if (p.type === 'math') {
+                const max = 10 * state.level;
+                const a = Math.floor(Math.random() * max) + 5;
+                const b = Math.floor(Math.random() * 20);
+                state.mathAns = a + b;
+                document.getElementById('math-question').innerText = `${a} + ${b} = ?`;
+                document.getElementById('modal-math').classList.remove('hidden');
+            } else {
+                startHangman();
+            }
+        }
+
+        function startHangman() {
+            let available = state.wordBank.filter(w => !state.usedWords.includes(w));
+            if (available.length === 0) {
+                state.usedWords = [];
+                available = state.wordBank;
+            }
+            state.word = available[Math.floor(Math.random() * available.length)];
+            state.guessed = [];
+            state.tries = 10;
+            updateHangmanUI();
+            document.getElementById('modal-word').classList.remove('hidden');
+            const kb = document.getElementById('keyboard');
+            kb.innerHTML = '';
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split('').forEach(l => {
+                const b = document.createElement('button');
+                b.className = "bg-gray-100 p-1.5 text-sm rounded font-bold hover:bg-gray-200 border";
+                b.innerText = l;
+                b.onclick = () => {
+                    if (b.disabled) return;
+                    b.disabled = true;
+                    b.className = "bg-gray-400 p-1.5 text-sm rounded font-bold text-white border";
+                    if (state.word.includes(l)) {
+                        state.guessed.push(l);
+                        playSound(900, 'sine', 0.05, 0.05);
+                    } else {
+                        state.tries--;
+                        playSound(100, 'sawtooth', 0.1, 0.05);
+                    }
+                    updateHangmanUI();
+                    const win = state.word.split('').every(char => state.guessed.includes(char));
+                    if (win || state.tries <= 0) {
+                        if (win) {
+                            state.usedWords.push(state.word);
+                            sounds.puzzleWin();
+                        } else {
+                            sounds.puzzleFail();
+                            document.getElementById('word-reveal').innerText = "SOLUTION : " + state.word;
+                            document.getElementById('word-reveal').classList.remove('hidden');
+                        }
+                        setTimeout(() => {
+                            document.getElementById('word-reveal').classList.add('hidden');
+                            closePuzzle(win);
+                        }, 1500);
+                    }
+                };
+                kb.appendChild(b);
+            });
+        }
+
+        function updateHangmanUI() {
+            document.getElementById('hangman-word').innerText = state.word.split('').map(l => state.guessed.includes(l) ? l : '_').join('');
+            document.getElementById('hangman-tries').innerText = `Erreurs: ${10 - state.tries} / 10`;
+        }
+
+        function closePuzzle(success) {
+            document.getElementById('modal-math').classList.add('hidden');
+            document.getElementById('modal-word').classList.add('hidden');
+            if (success) { state.score += 20; state.currentPuzzle.solved = true; }
+            else { state.ninja.x -= 120; }
+            state.playing = true;
+            updateUI();
+            gameLoop();
+        }
+
+        function drawBackground() {
+            ctx.fillStyle = "#87CEEB";
+            ctx.fillRect(0,0,800,450);
+            ctx.fillStyle = "#5d8aa8";
+            for(let i=0; i<5; i++) {
+                let bx = (i * 800) - (state.cameraX * 0.2) % 800;
+                ctx.beginPath(); ctx.moveTo(bx, 450); ctx.lineTo(bx+400, 100); ctx.lineTo(bx+800, 450); ctx.fill();
+            }
+        }
+
+        function gameLoop() {
+            if (!state.playing) return;
+            state.animationFrame++;
+            ctx.clearRect(0,0,800,450);
+            drawBackground();
+            state.ninja.update();
+            state.boss.update();
+            state.cameraX = Math.max(0, Math.min(state.ninja.x - 300, config.levelWidth - 800));
+
+            state.platforms.forEach(p => {
+                ctx.fillStyle = "#2d5a27"; ctx.fillRect(p.x - state.cameraX, p.y, p.w, p.h);
+                ctx.fillStyle = "#8b4513"; ctx.fillRect(p.x - state.cameraX, p.y + 5, p.w, p.h - 5);
+            });
+
+            // Dessin de la cage
+            if (!state.boss.freed) {
+                // Toit solide de la cage
+                ctx.fillStyle = "#444";
+                ctx.fillRect(state.cage.x - state.cameraX, state.cage.y - 10, state.cage.w, 15);
+                
+                // Barreaux
+                ctx.strokeStyle = "#333"; ctx.lineWidth = 4;
+                for(let i=0; i<6; i++) {
+                    ctx.beginPath(); ctx.moveTo(state.cage.x + i*30 - state.cameraX, state.cage.y);
+                    ctx.lineTo(state.cage.x + i*30 - state.cameraX, state.cage.y + state.cage.h); ctx.stroke();
+                }
+                // Base
+                ctx.fillStyle = "#222";
+                ctx.fillRect(state.cage.x - state.cameraX - 5, state.cage.y + state.cage.h, state.cage.w + 10, 10);
+            }
+
+            state.stars.forEach(s => { if(!s.collected) { ctx.font = "30px Arial"; ctx.fillText("⭐", s.x - state.cameraX, s.y); } });
+            state.puzzles.forEach(p => { if(!p.solved) { ctx.font = "40px Arial"; ctx.fillText(p.type === 'math' ? "📜" : "🗡️", p.x - state.cameraX, p.y); } });
+
+            state.shurikens.forEach((s, i) => {
+                s.x += s.vx; s.angle += 0.5;
+                ctx.save(); ctx.translate(s.x - state.cameraX, s.y); ctx.rotate(s.angle);
+                ctx.fillStyle = "gray"; ctx.fillRect(-10, -2, 20, 4); ctx.fillRect(-2, -10, 4, 20); ctx.restore();
+            });
+
+            state.fireballs.forEach((f, i) => { f.x += f.vx; ctx.font = "24px Arial"; ctx.fillText("🔥", f.x - state.cameraX, f.y); });
+
+            state.ninja.draw();
+            state.boss.draw();
+            if (state.shurikenCooldown > 0) state.shurikenCooldown--;
+            checkCollisions();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function animateFinal() {
+            const ninjaCine = document.getElementById('cine-ninja');
+            let posX = 0;
+            function step() { posX += 4; ninjaCine.style.left = posX + 'px'; if (posX < window.innerWidth) requestAnimationFrame(step); }
+            step();
+        }
+
+        document.getElementById('btn-play').onclick = () => {
+            audioCtx.resume();
+            state.playing = true;
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('ui-overlay').classList.remove('hidden');
+            initLevel();
+            gameLoop();
+        };
+
+        window.onkeydown = e => {
+            state.keys[e.key] = true;
+            if (!document.getElementById('modal-math').classList.contains('hidden')) {
+                if (e.key >= '0' && e.key <= '9') addDigit(e.key);
+                if (e.key === 'Enter') validateMath();
+                if (e.key === 'Backspace') clearDigits();
+            }
+        };
+        window.onkeyup = e => state.keys[e.key] = false;
+
+        ['left', 'right', 'jump', 'shoot'].forEach(id => {
+            const el = document.getElementById('btn-' + id);
+            el.ontouchstart = (e) => { e.preventDefault(); state.keys[id] = true; };
+            el.ontouchend = (e) => { e.preventDefault(); state.keys[id] = false; };
+            el.onmousedown = () => state.keys[id] = true;
+            el.onmouseup = () => state.keys[id] = false;
+        });
+    </script>
+</body>
+</html>
