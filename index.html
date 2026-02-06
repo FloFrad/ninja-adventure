@@ -71,10 +71,8 @@
             transform: scale(0.95);
         }
 
-        /* Styles Cinématique de Fin */
-        #final-cinematic {
-            transition: opacity 1s ease-in-out;
-        }
+        /* Cinématique de Fin */
+        #final-cinematic { transition: opacity 1s ease-in-out; }
         .bounce { animation: bounce 0.5s infinite alternate; }
         @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-20px); } }
         
@@ -84,9 +82,13 @@
             border-radius: 10px 0 10px 0;
             pointer-events: none;
             animation: fall linear forwards;
+            z-index: 60;
         }
-        @keyframes fall {
-            to { transform: translateY(100vh) rotate(360deg); }
+        @keyframes fall { to { transform: translateY(100vh) rotate(360deg); } }
+
+        /* Correction des contrôles tactiles pour tablettes */
+        #mobile-controls {
+            display: none; /* Masqué par défaut, affiché par JS si tactile */
         }
     </style>
 </head>
@@ -103,7 +105,7 @@
         </div>
 
         <div id="start-screen" class="absolute inset-0 bg-black bg-opacity-90 flex flex-col items-center justify-center text-white z-50 p-6">
-            <h1 class="text-6xl md:text-8xl font-bold mb-4 text-red-600 tracking-tighter uppercase italic text-center drop-shadow-lg">Ninja Adventure</h1>
+            <h1 class="text-5xl md:text-8xl font-bold mb-4 text-red-600 tracking-tighter uppercase italic text-center drop-shadow-lg">Ninja Adventure</h1>
             <p class="mb-10 text-xl md:text-2xl text-gray-300">Le Maître du Shinobi</p>
             <button id="btn-play" class="px-12 py-5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-full text-3xl transition-transform transform hover:scale-110 shadow-2xl">JOUER</button>
         </div>
@@ -111,10 +113,10 @@
         <div id="ui-overlay" class="absolute top-4 left-4 right-4 flex justify-between items-start pointer-events-none hidden">
             <div class="flex flex-col gap-2">
                 <div id="health-bar" class="text-3xl md:text-4xl filter drop-shadow">🏮🏮🏮</div>
-                <div class="bg-black bg-opacity-60 px-4 py-2 rounded-lg text-white font-bold text-sm md:text-base border border-gray-700">
+                <div class="bg-black bg-opacity-60 px-4 py-2 rounded-lg text-white font-bold text-xs md:text-base border border-gray-700">
                     Score: <span id="score-val" class="text-yellow-400">0</span> / 100
                 </div>
-                <div class="bg-black bg-opacity-60 px-4 py-2 rounded-lg text-white font-bold text-sm md:text-base border border-gray-700">
+                <div class="bg-black bg-opacity-60 px-4 py-2 rounded-lg text-white font-bold text-xs md:text-base border border-gray-700">
                     Niveau: <span id="level-val" class="text-red-400">1</span> / 5
                 </div>
             </div>
@@ -127,18 +129,18 @@
                 <div id="math-question" class="text-3xl font-mono mb-4 bg-yellow-50 py-3 rounded-xl border-2 border-yellow-200 text-gray-800"></div>
                 <div id="math-display" class="text-4xl font-bold mb-6 h-12 flex items-center justify-center text-red-600 border-b-4 border-gray-100"></div>
                 <div class="grid grid-cols-3 gap-2">
-                    <button class="num-btn" onclick="addDigit(1)">1</button>
-                    <button class="num-btn" onclick="addDigit(2)">2</button>
-                    <button class="num-btn" onclick="addDigit(3)">3</button>
-                    <button class="num-btn" onclick="addDigit(4)">4</button>
-                    <button class="num-btn" onclick="addDigit(5)">5</button>
-                    <button class="num-btn" onclick="addDigit(6)">6</button>
-                    <button class="num-btn" onclick="addDigit(7)">7</button>
-                    <button class="num-btn" onclick="addDigit(8)">8</button>
-                    <button class="num-btn" onclick="addDigit(9)">9</button>
-                    <button class="num-btn bg-red-100 text-red-700" onclick="clearDigits()">C</button>
-                    <button class="num-btn" onclick="addDigit(0)">0</button>
-                    <button id="btn-math-val" class="num-btn bg-green-600 text-white" onclick="validateMath()">OK</button>
+                    <button class="num-btn" data-val="1">1</button>
+                    <button class="num-btn" data-val="2">2</button>
+                    <button class="num-btn" data-val="3">3</button>
+                    <button class="num-btn" data-val="4">4</button>
+                    <button class="num-btn" data-val="5">5</button>
+                    <button class="num-btn" data-val="6">6</button>
+                    <button class="num-btn" data-val="7">7</button>
+                    <button class="num-btn" data-val="8">8</button>
+                    <button class="num-btn" data-val="9">9</button>
+                    <button class="num-btn bg-red-100 text-red-700" id="btn-math-clear">C</button>
+                    <button class="num-btn" data-val="0">0</button>
+                    <button id="btn-math-val" class="num-btn bg-green-600 text-white">OK</button>
                 </div>
             </div>
         </div>
@@ -147,70 +149,56 @@
         <div id="modal-word" class="absolute inset-0 bg-black bg-opacity-80 flex items-center justify-center hidden z-40 p-4">
             <div class="bg-white p-8 rounded-2xl text-center max-w-lg w-full shadow-2xl border-4 border-gray-800">
                 <h2 class="text-2xl font-bold mb-4 text-gray-700">Défi du Silence</h2>
-                <div id="hangman-word" class="text-4xl tracking-[0.4em] font-mono mb-6 text-black font-black"></div>
+                <div id="hangman-word" class="text-3xl md:text-4xl tracking-[0.4em] font-mono mb-6 text-black font-black"></div>
                 <div id="hangman-tries" class="text-red-600 font-bold mb-6 text-lg">Erreurs: 0 / 10</div>
                 <div id="keyboard" class="grid grid-cols-7 md:grid-cols-9 gap-1.5 mb-6"></div>
                 <p id="word-reveal" class="text-xl text-red-700 font-black hidden bg-red-50 p-2 rounded"></p>
             </div>
         </div>
 
-        <!-- FIN DE JEU - CINÉMATIQUE AMÉLIORÉE -->
+        <!-- CINÉMATIQUE DE FIN -->
         <div id="final-cinematic" class="absolute inset-0 bg-gradient-to-b from-blue-300 to-green-100 hidden z-50 overflow-hidden">
-             <!-- Arrière-plan Village -->
              <div class="absolute bottom-20 w-full flex justify-around items-end">
-                <div class="text-9xl opacity-80">🏠</div>
-                <div class="text-9xl opacity-80">⛩️</div>
-                <div class="text-9xl opacity-80">🏠</div>
+                <div class="text-7xl md:text-9xl opacity-80">🏠</div>
+                <div class="text-7xl md:text-9xl opacity-80">⛩️</div>
+                <div class="text-7xl md:text-9xl opacity-80">🏠</div>
              </div>
-             
-             <!-- Le Sol -->
              <div class="absolute bottom-0 w-full h-20 bg-green-800 border-t-4 border-green-900"></div>
-
-             <!-- Acteurs -->
              <div id="cine-actors-container" class="absolute inset-0">
-                <!-- Copain Prisonnier -->
                 <div id="cine-friend-cage" class="absolute bottom-20 right-1/4 flex flex-col items-center">
-                    <div id="cine-cage" class="text-7xl z-10">⛓️</div>
-                    <div id="cine-friend" class="text-6xl absolute top-2 opacity-100 transition-all duration-500">🥷</div>
+                    <div id="cine-cage" class="text-6xl md:text-7xl z-10">⛓️</div>
+                    <div id="cine-friend" class="text-5xl md:text-6xl absolute top-2 transition-all duration-500">🥷</div>
                     <div class="text-xs font-bold text-green-800 bg-white px-1 rounded absolute -top-4">AMI</div>
                 </div>
-
-                <!-- Royauté (cachée au début) -->
-                <div id="cine-royalty" class="absolute bottom-20 right-1/2 translate-x-1/2 flex gap-8 opacity-0 transition-opacity duration-1000">
-                    <div class="text-7xl flex flex-col items-center"><span class="text-sm bg-yellow-400 px-2 rounded mb-1">ROI</span>👑</div>
-                    <div class="text-7xl flex flex-col items-center"><span class="text-sm bg-pink-400 px-2 rounded mb-1 text-white">REINE</span>👸</div>
+                <div id="cine-royalty" class="absolute bottom-20 right-1/2 translate-x-1/2 flex gap-4 md:gap-8 opacity-0 transition-opacity duration-1000">
+                    <div class="text-5xl md:text-7xl flex flex-col items-center"><span class="text-xs bg-yellow-400 px-2 rounded mb-1">ROI</span>👑</div>
+                    <div class="text-5xl md:text-7xl flex flex-col items-center"><span class="text-xs bg-pink-400 px-2 rounded mb-1 text-white">REINE</span>👸</div>
                 </div>
-
-                <!-- Villageois (cachés) -->
                 <div id="cine-villagers" class="absolute bottom-20 w-full flex justify-between px-10 opacity-0 transition-opacity duration-1000">
-                    <div class="flex gap-4"><div class="text-5xl villager">👨‍🌾</div><div class="text-5xl villager">👩‍🌾</div></div>
-                    <div class="flex gap-4"><div class="text-5xl villager">👨‍🎨</div><div class="text-5xl villager">👩‍🍳</div></div>
+                    <div class="flex gap-2 md:gap-4"><div class="text-4xl md:text-5xl villager">👨‍🌾</div><div class="text-4xl md:text-5xl villager">👩‍🌾</div></div>
+                    <div class="flex gap-2 md:gap-4"><div class="text-4xl md:text-5xl villager">👨‍🎨</div><div class="text-4xl md:text-5xl villager">👩‍🍳</div></div>
                 </div>
-
-                <!-- Le Héros -->
-                <div id="cine-hero" class="absolute bottom-20 -left-20 text-6xl transition-all duration-1000">🥷</div>
+                <div id="cine-hero" class="absolute bottom-20 -left-20 text-5xl md:text-6xl transition-all duration-1000">🥷</div>
              </div>
-
-             <!-- Overlay de fin -->
              <div id="cine-overlay" class="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-40 opacity-0 transition-opacity duration-2000 pointer-events-none">
-                <div class="bg-white p-10 rounded-3xl shadow-2xl text-center scale-90 transition-transform duration-1000" id="final-card">
-                    <h2 class="text-5xl font-black text-red-700 mb-4">VICTOIRE TOTALE</h2>
-                    <p class="text-xl text-gray-700 mb-8 italic">Le village est en paix, les dragons sont libres !</p>
-                    <div id="final-gift" class="text-8xl mb-6">🎁</div>
-                    <button onclick="location.reload()" class="px-10 py-4 bg-red-600 text-white rounded-full font-bold text-2xl hover:bg-red-700 pointer-events-auto shadow-lg">REJOUER</button>
+                <div class="bg-white p-6 md:p-10 rounded-3xl shadow-2xl text-center scale-90 transition-transform duration-1000" id="final-card">
+                    <h2 class="text-3xl md:text-5xl font-black text-red-700 mb-4">VICTOIRE TOTALE</h2>
+                    <p class="text-lg md:text-xl text-gray-700 mb-6 italic">Le village est en paix !</p>
+                    <div id="final-gift" class="text-6xl md:text-8xl mb-6">🎁</div>
+                    <button onclick="location.reload()" class="px-8 py-3 bg-red-600 text-white rounded-full font-bold text-xl md:text-2xl hover:bg-red-700 pointer-events-auto shadow-lg">REJOUER</button>
                 </div>
              </div>
         </div>
 
-        <!-- Contrôles Mobiles -->
-        <div id="mobile-controls" class="absolute bottom-6 left-6 right-6 flex justify-between pointer-events-none unselectable md:hidden">
-            <div class="flex gap-4 pointer-events-auto">
-                <button id="btn-left" class="w-20 h-20 bg-white bg-opacity-20 backdrop-blur-sm rounded-2xl flex items-center justify-center text-4xl border-2 border-white border-opacity-30">⬅️</button>
-                <button id="btn-right" class="w-20 h-20 bg-white bg-opacity-20 backdrop-blur-sm rounded-2xl flex items-center justify-center text-4xl border-2 border-white border-opacity-30">➡️</button>
+        <!-- CONTRÔLES TACTILES (Adaptés Tablettes & Mobiles) -->
+        <div id="mobile-controls" class="absolute bottom-6 left-6 right-6 flex justify-between pointer-events-none unselectable">
+            <div class="flex gap-3 md:gap-6 pointer-events-auto">
+                <button id="btn-left" class="w-16 h-16 md:w-24 md:h-24 bg-white bg-opacity-20 backdrop-blur-md rounded-2xl flex items-center justify-center text-3xl md:text-5xl border-2 border-white border-opacity-30">⬅️</button>
+                <button id="btn-right" class="w-16 h-16 md:w-24 md:h-24 bg-white bg-opacity-20 backdrop-blur-md rounded-2xl flex items-center justify-center text-3xl md:text-5xl border-2 border-white border-opacity-30">➡️</button>
             </div>
-            <div class="flex gap-4 pointer-events-auto">
-                <button id="btn-jump" class="w-20 h-20 bg-blue-600 bg-opacity-30 backdrop-blur-sm rounded-full flex items-center justify-center text-4xl border-2 border-blue-400">⬆️</button>
-                <button id="btn-shoot" class="w-20 h-20 bg-red-600 bg-opacity-30 backdrop-blur-sm rounded-full flex items-center justify-center text-4xl border-2 border-red-400">✴️</button>
+            <div class="flex gap-3 md:gap-6 pointer-events-auto">
+                <button id="btn-jump" class="w-16 h-16 md:w-24 md:h-24 bg-blue-600 bg-opacity-30 backdrop-blur-md rounded-full flex items-center justify-center text-3xl md:text-5xl border-2 border-blue-400">⬆️</button>
+                <button id="btn-shoot" class="w-16 h-16 md:w-24 md:h-24 bg-red-600 bg-opacity-30 backdrop-blur-md rounded-full flex items-center justify-center text-3xl md:text-5xl border-2 border-red-400">✴️</button>
             </div>
         </div>
     </div>
@@ -220,7 +208,12 @@
         const ctx = canvas.getContext('2d');
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-        // Responsive Canvas
+        // Détection du tactile (Tablettes + Mobiles)
+        const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0);
+        if (isTouchDevice) {
+            document.getElementById('mobile-controls').style.display = 'flex';
+        }
+
         const VIRTUAL_WIDTH = 800;
         const VIRTUAL_HEIGHT = 450;
 
@@ -250,16 +243,15 @@
             } catch(e) {}
         }
 
-        // Musique de fin (Koto-style synth)
         let endMusicInterval = null;
         function playEndMusic() {
-            const melody = [440, 493, 523, 587, 659, 783, 880]; // Gamme pentatonique mineure
+            const melody = [440, 493, 523, 587, 659, 783, 880];
             let step = 0;
             if(endMusicInterval) return;
             endMusicInterval = setInterval(() => {
                 const note = melody[Math.floor(Math.random() * melody.length)];
                 playSound(note, 'triangle', 0.8, 0.15);
-                if(step % 4 === 0) playSound(110, 'sine', 1.0, 0.1); // Basse
+                if(step % 4 === 0) playSound(110, 'sine', 1.0, 0.1);
                 step++;
             }, 400);
         }
@@ -277,13 +269,13 @@
                     const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
                     osc.type = 'sawtooth'; osc.frequency.setValueAtTime(f, now);
                     osc.frequency.exponentialRampToValueAtTime(f / 2, now + 1.2);
-                    gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 1.2);
+                    gain.gain.setValueAtTime(0.4, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 1.2);
                     osc.connect(gain); gain.connect(audioCtx.destination);
                     osc.start(); osc.stop(now + 1.2);
                 });
             },
             claps: () => {
-                setInterval(() => { if(state.win) playSound(Math.random() * 200 + 400, 'white-noise' === '' ? 'sine' : 'triangle', 0.05, 0.05); }, 150);
+                setInterval(() => { if(state.win) playSound(Math.random() * 200 + 400, 'triangle', 0.05, 0.05); }, 200);
             }
         };
 
@@ -295,9 +287,6 @@
         };
 
         const config = { gravity: 0.6, jumpForce: -14, speed: 5, levelWidth: 3000, dragonMaxHP: 3 };
-
-        // ... [LOGIQUE DE JEU EXISTANTE RESTREINTE POUR LA CONCISION] ...
-        // (Copie conforme de la logique Ninja, Boss, Collisions des étapes précédentes)
 
         class Ninja {
             constructor() { this.x = 100; this.y = 300; this.w = 40; this.h = 60; this.vx = 0; this.vy = 0; this.grounded = false; this.frame = 0; this.facing = 1; this.invul = 0; }
@@ -407,8 +396,6 @@
             setTimeout(() => document.getElementById('shuriken-transition').classList.remove('shuriken-animate'), 1500);
         }
 
-        // --- NOUVELLE CINÉMATIQUE DE FIN ---
-
         function spawnSakura() {
             const petal = document.createElement('div');
             petal.className = 'sakura';
@@ -429,53 +416,45 @@
             const villagers = document.getElementById('cine-villagers');
             const overlay = document.getElementById('cine-overlay');
 
-            // 1. Le ninja court vers le village
+            setTimeout(() => { hero.style.left = '65%'; hero.classList.add('bounce'); }, 100);
             setTimeout(() => {
-                hero.style.left = '65%';
-                hero.classList.add('bounce');
-            }, 100);
-
-            // 2. Il délivre son copain
-            setTimeout(() => {
-                hero.classList.remove('bounce');
-                cage.innerText = '💥';
+                hero.classList.remove('bounce'); cage.innerText = '💥';
                 setTimeout(() => { 
                     cage.style.opacity = '0'; 
-                    friend.style.transform = 'translateX(-80px)';
-                    friend.innerText = '🥷✨'; // Copain ninja
-                    friend.style.borderBottom = "4px solid #22c55e"; // Bandeau vert symbolisé
+                    friend.style.transform = 'translateX(-60px)';
+                    friend.innerText = '🥷✨'; 
+                    friend.style.borderBottom = "3px solid #22c55e"; 
                     playSound(600, 'sine', 0.5);
                 }, 500);
             }, 1500);
-
-            // 3. Le roi et la reine arrivent et félicitent
-            setTimeout(() => {
-                royalty.style.opacity = '1';
-                villagers.style.opacity = '1';
-                document.querySelectorAll('.villager').forEach(v => v.classList.add('bounce'));
-                sounds.claps();
-            }, 3000);
-
-            // 4. Cadeau et départ
-            setTimeout(() => {
-                hero.style.transform = 'scale(1.2)';
-                friend.style.transform = 'scale(1.2) translateX(-80px)';
-                overlay.style.opacity = '1';
-                document.getElementById('final-card').style.transform = 'scale(1)';
-                setInterval(spawnSakura, 100);
+            setTimeout(() => { royalty.style.opacity = '1'; villagers.style.opacity = '1'; document.querySelectorAll('.villager').forEach(v => v.classList.add('bounce')); sounds.claps(); }, 3000);
+            setTimeout(() => { 
+                hero.style.transform = 'scale(1.2)'; 
+                friend.style.transform = 'scale(1.2) translateX(-60px)'; 
+                overlay.style.opacity = '1'; 
+                document.getElementById('final-card').style.transform = 'scale(1)'; 
+                setInterval(spawnSakura, 100); 
             }, 6000);
         }
 
-        // [LOGIQUE DES MODALES ET BOUTONS]
         window.addDigit = (n) => { if (state.mathInput.length < 4) { state.mathInput += n; document.getElementById('math-display').innerText = state.mathInput; playSound(800, 'sine', 0.03, 0.03); } };
         window.clearDigits = () => { state.mathInput = ""; document.getElementById('math-display').innerText = ""; };
-        window.validateMath = () => { const val = parseInt(state.mathInput); const success = (val === state.mathAns); if (success) sounds.puzzleWin(); else sounds.puzzleFail(); closePuzzle(success); state.mathInput = ""; document.getElementById('math-display').innerText = ""; };
-        function openPuzzle(p) { state.currentPuzzle = p; state.playing = false; if (p.type === 'math') { const max = 10 * state.level; const a = Math.floor(Math.random() * max) + 5; const b = Math.floor(Math.random() * 20); state.mathAns = a + b; document.getElementById('math-question').innerText = `${a} + ${b} = ?`; document.getElementById('modal-math').classList.remove('hidden'); } else { startHangman(); } }
+        window.validateMath = () => { const val = parseInt(state.mathInput); const success = (val === state.mathAns); if (success) sounds.puzzleWin(); else sounds.puzzleFail(); closePuzzle(success); };
+
+        function openPuzzle(p) { 
+            state.currentPuzzle = p; state.playing = false; 
+            if (p.type === 'math') { 
+                const max = 10 * state.level; const a = Math.floor(Math.random() * max) + 5; const b = Math.floor(Math.random() * 20); 
+                state.mathAns = a + b; document.getElementById('math-question').innerText = `${a} + ${b} = ?`; 
+                document.getElementById('modal-math').classList.remove('hidden'); 
+            } else { startHangman(); } 
+        }
+
         function startHangman() {
             let available = state.wordBank.filter(w => !state.usedWords.includes(w)); if (available.length === 0) { state.usedWords = []; available = state.wordBank; }
             state.word = available[Math.floor(Math.random() * available.length)]; state.guessed = []; state.tries = 10; updateHangmanUI(); document.getElementById('modal-word').classList.remove('hidden');
             const kb = document.getElementById('keyboard'); kb.innerHTML = ''; "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split('').forEach(l => {
-                const b = document.createElement('button'); b.className = "bg-gray-100 p-2 text-sm md:text-base rounded-lg font-bold hover:bg-gray-200 border-2 active:bg-gray-300"; b.innerText = l;
+                const b = document.createElement('button'); b.className = "bg-gray-100 p-2 text-sm rounded-lg font-bold border-2 active:bg-gray-300"; b.innerText = l;
                 b.onclick = () => { if (b.disabled) return; b.disabled = true; b.className = "bg-gray-400 p-2 opacity-50"; if (state.word.includes(l)) { state.guessed.push(l); playSound(900, 'sine', 0.05); } else { state.tries--; playSound(100, 'sawtooth', 0.1); } updateHangmanUI();
                     const win = state.word.split('').every(char => state.guessed.includes(char)); if (win || state.tries <= 0) { if (win) sounds.puzzleWin(); else sounds.puzzleFail(); setTimeout(() => closePuzzle(win), 1000); } }; kb.appendChild(b);
             });
@@ -505,15 +484,28 @@
             checkCollisions(); requestAnimationFrame(gameLoop);
         }
 
+        // Event Listeners
         document.getElementById('btn-play').onclick = () => { audioCtx.resume(); state.playing = true; document.getElementById('start-screen').classList.add('hidden'); document.getElementById('ui-overlay').classList.remove('hidden'); initLevel(); gameLoop(); };
-        window.onkeydown = e => { state.keys[e.key] = true; if (!document.getElementById('modal-math').classList.contains('hidden')) { if (e.key >= '0' && e.key <= '9') addDigit(e.key); if (e.key === 'Enter') validateMath(); if (e.key === 'Backspace') clearDigits(); } };
+        
+        // Boutons Mathématiques
+        document.querySelectorAll('.num-btn[data-val]').forEach(btn => btn.onclick = () => addDigit(btn.dataset.val));
+        document.getElementById('btn-math-clear').onclick = clearDigits;
+        document.getElementById('btn-math-val').onclick = validateMath;
+
+        window.onkeydown = e => { state.keys[e.key] = true; };
         window.onkeyup = e => state.keys[e.key] = false;
-        ['left', 'right', 'jump', 'shoot'].forEach(id => {
-            const el = document.getElementById('btn-' + id);
-            el.ontouchstart = (e) => { e.preventDefault(); state.keys[id] = true; };
-            el.ontouchend = (e) => { e.preventDefault(); state.keys[id] = false; };
-            el.onmousedown = () => state.keys[id] = true; el.onmouseup = () => state.keys[id] = false;
-        });
+
+        // Configuration tactile robuste
+        const setupControl = (id, key) => {
+            const el = document.getElementById(id);
+            const start = (e) => { e.preventDefault(); state.keys[key] = true; };
+            const end = (e) => { e.preventDefault(); state.keys[key] = false; };
+            el.addEventListener('touchstart', start, {passive: false});
+            el.addEventListener('touchend', end, {passive: false});
+            el.onmousedown = () => state.keys[key] = true;
+            el.onmouseup = () => state.keys[key] = false;
+        };
+        setupControl('btn-left', 'left'); setupControl('btn-right', 'right'); setupControl('btn-jump', 'jump'); setupControl('btn-shoot', 'shoot');
     </script>
 </body>
 </html>
