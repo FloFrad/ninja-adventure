@@ -6,20 +6,52 @@
     <title>Ninja Adventure - Japon Médiéval</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { margin: 0; overflow: hidden; background: #1a1a1a; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        canvas { display: block; background: linear-gradient(to bottom, #87CEEB, #E0F6FF); }
+        body, html { 
+            margin: 0; 
+            padding: 0; 
+            width: 100%; 
+            height: 100%; 
+            overflow: hidden; 
+            background: #1a1a1a; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        }
+        
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+        }
+
+        canvas { 
+            display: block; 
+            background: linear-gradient(to bottom, #87CEEB, #E0F6FF);
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
         .unselectable { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
         
         #shuriken-transition {
             pointer-events: none;
             display: none;
             z-index: 100;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
         }
+
         @keyframes shuriken-spin-grow {
             0% { transform: translate(-50%, -50%) rotate(0deg) scale(0); opacity: 1; }
-            50% { transform: translate(-50%, -50%) rotate(720deg) scale(15); opacity: 1; }
-            100% { transform: translate(-50%, -50%) rotate(1440deg) scale(20); opacity: 0; }
+            50% { transform: translate(-50%, -50%) rotate(720deg) scale(25); opacity: 1; }
+            100% { transform: translate(-50%, -50%) rotate(1440deg) scale(35); opacity: 0; }
         }
+
         .shuriken-animate {
             display: block !important;
             animation: shuriken-spin-grow 1.5s ease-in-out forwards;
@@ -28,10 +60,10 @@
         .num-btn {
             background: #f3f4f6;
             border: 1px solid #d1d5db;
-            border-radius: 6px;
-            font-size: 1.1rem;
+            border-radius: 8px;
+            font-size: 1.25rem;
             font-weight: bold;
-            padding: 6px;
+            padding: 12px;
             transition: all 0.1s;
         }
         .num-btn:active {
@@ -40,13 +72,13 @@
         }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen">
+<body class="unselectable">
 
-    <div id="game-container" class="relative bg-white shadow-2xl overflow-hidden rounded-lg" style="width: 800px; height: 450px;">
-        <canvas id="gameCanvas" width="800" height="450"></canvas>
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
 
         <!-- Transition Shuriken -->
-        <div id="shuriken-transition" class="absolute top-1/2 left-1/2">
+        <div id="shuriken-transition">
             <svg width="100" height="100" viewBox="0 0 100 100" fill="currentColor" class="text-gray-800">
                 <path d="M50 0 L60 40 L100 50 L60 60 L50 100 L40 60 L0 50 L40 40 Z" />
                 <circle cx="50" cy="50" r="8" fill="white" />
@@ -54,29 +86,33 @@
         </div>
 
         <!-- Ecran de démarrage -->
-        <div id="start-screen" class="absolute inset-0 bg-black bg-opacity-80 flex flex-col items-center justify-center text-white z-50">
-            <h1 class="text-5xl font-bold mb-6 text-red-500 tracking-tighter uppercase italic text-center">Ninja Adventure</h1>
-            <p class="mb-8 text-lg">Le Maître du Shinobi</p>
-            <button id="btn-play" class="px-10 py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-full text-2xl transition-transform transform hover:scale-110 shadow-lg">COMMENCER</button>
+        <div id="start-screen" class="absolute inset-0 bg-black bg-opacity-90 flex flex-col items-center justify-center text-white z-50 p-6">
+            <h1 class="text-6xl md:text-8xl font-bold mb-4 text-red-600 tracking-tighter uppercase italic text-center drop-shadow-lg">Ninja Adventure</h1>
+            <p class="mb-10 text-xl md:text-2xl text-gray-300">Le Maître du Shinobi</p>
+            <button id="btn-play" class="px-12 py-5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-full text-3xl transition-transform transform hover:scale-110 shadow-2xl">JOUER</button>
         </div>
 
-        <!-- Interface -->
+        <!-- Interface de Jeu -->
         <div id="ui-overlay" class="absolute top-4 left-4 right-4 flex justify-between items-start pointer-events-none hidden">
             <div class="flex flex-col gap-2">
-                <div id="health-bar" class="flex gap-1 text-3xl">🏮🏮🏮</div>
-                <div class="bg-black bg-opacity-50 px-3 py-1 rounded text-white font-bold">Points: <span id="score-val">0</span> / 100</div>
-                <div class="bg-black bg-opacity-50 px-3 py-1 rounded text-white font-bold">Étape: <span id="level-val">1</span> / 5</div>
+                <div id="health-bar" class="text-3xl md:text-4xl filter drop-shadow">🏮🏮🏮</div>
+                <div class="bg-black bg-opacity-60 px-4 py-2 rounded-lg text-white font-bold text-sm md:text-base border border-gray-700">
+                    Score: <span id="score-val" class="text-yellow-400">0</span> / 100
+                </div>
+                <div class="bg-black bg-opacity-60 px-4 py-2 rounded-lg text-white font-bold text-sm md:text-base border border-gray-700">
+                    Niveau: <span id="level-val" class="text-red-400">1</span> / 5
+                </div>
             </div>
         </div>
 
-        <!-- Modale Math avec Pavé Compact -->
-        <div id="modal-math" class="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-40">
-            <div class="bg-white p-4 rounded-xl text-center max-w-[280px] w-full mx-4 shadow-2xl border-4 border-yellow-600">
-                <h2 class="text-sm font-bold mb-2 uppercase text-gray-600 tracking-widest">Énigme du Scribe</h2>
-                <div id="math-question" class="text-2xl font-mono mb-2 bg-yellow-50 py-1 rounded border border-yellow-200"></div>
-                <div id="math-display" class="text-3xl font-bold mb-3 h-10 flex items-center justify-center text-red-600 border-b-2 border-gray-100"></div>
+        <!-- Modale Mathématique Responsive -->
+        <div id="modal-math" class="absolute inset-0 bg-black bg-opacity-80 flex items-center justify-center hidden z-40 p-4">
+            <div class="bg-white p-6 rounded-2xl text-center max-w-sm w-full shadow-2xl border-4 border-yellow-600">
+                <h2 class="text-lg font-bold mb-3 uppercase text-gray-500 tracking-widest">Énigme du Scribe</h2>
+                <div id="math-question" class="text-3xl font-mono mb-4 bg-yellow-50 py-3 rounded-xl border-2 border-yellow-200 text-gray-800"></div>
+                <div id="math-display" class="text-4xl font-bold mb-6 h-12 flex items-center justify-center text-red-600 border-b-4 border-gray-100"></div>
 
-                <div class="grid grid-cols-3 gap-1.5 mb-2">
+                <div class="grid grid-cols-3 gap-2">
                     <button class="num-btn" onclick="addDigit(1)">1</button>
                     <button class="num-btn" onclick="addDigit(2)">2</button>
                     <button class="num-btn" onclick="addDigit(3)">3</button>
@@ -86,46 +122,45 @@
                     <button class="num-btn" onclick="addDigit(7)">7</button>
                     <button class="num-btn" onclick="addDigit(8)">8</button>
                     <button class="num-btn" onclick="addDigit(9)">9</button>
-                    <button class="num-btn bg-red-50" onclick="clearDigits()">C</button>
+                    <button class="num-btn bg-red-100 text-red-700" onclick="clearDigits()">C</button>
                     <button class="num-btn" onclick="addDigit(0)">0</button>
-                    <button id="btn-math-val" class="num-btn bg-green-500 text-white" onclick="validateMath()">OK</button>
+                    <button id="btn-math-val" class="num-btn bg-green-600 text-white" onclick="validateMath()">OK</button>
                 </div>
             </div>
         </div>
 
-        <!-- Modale Pendu -->
-        <div id="modal-word" class="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-40">
-            <div class="bg-white p-6 rounded-xl text-center max-w-md w-full mx-4 shadow-2xl border-4 border-gray-700">
-                <h2 class="text-xl font-bold mb-2">Défi du Silence</h2>
-                <div id="hangman-word" class="text-3xl tracking-[0.3em] font-mono mb-4 text-gray-800"></div>
-                <div id="hangman-tries" class="text-red-500 font-bold mb-4">Erreurs restantes: 10</div>
-                <div id="keyboard" class="grid grid-cols-7 gap-1 mb-4"></div>
-                <p id="word-reveal" class="text-red-600 font-bold hidden mb-2"></p>
+        <!-- Modale Pendu Responsive -->
+        <div id="modal-word" class="absolute inset-0 bg-black bg-opacity-80 flex items-center justify-center hidden z-40 p-4">
+            <div class="bg-white p-8 rounded-2xl text-center max-w-lg w-full shadow-2xl border-4 border-gray-800">
+                <h2 class="text-2xl font-bold mb-4 text-gray-700">Défi du Silence</h2>
+                <div id="hangman-word" class="text-4xl tracking-[0.4em] font-mono mb-6 text-black font-black"></div>
+                <div id="hangman-tries" class="text-red-600 font-bold mb-6 text-lg">Erreurs: 0 / 10</div>
+                <div id="keyboard" class="grid grid-cols-7 md:grid-cols-9 gap-1.5 mb-6"></div>
+                <p id="word-reveal" class="text-xl text-red-700 font-black hidden bg-red-50 p-2 rounded"></p>
             </div>
         </div>
 
-        <!-- Fin -->
-        <div id="final-cinematic" class="absolute inset-0 bg-white flex flex-col items-center justify-center hidden z-50 overflow-hidden">
-             <div class="relative w-full h-full bg-red-50">
-                <div id="cine-ninja" class="absolute bottom-10 left-0 text-5xl">🥷</div>
-                <div class="absolute bottom-10 right-20 text-5xl">🎎</div>
-                <div class="absolute bottom-0 w-full h-10 bg-green-800"></div>
-                <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <h2 class="text-4xl font-black text-red-700 mb-4 text-center">LÉGENDE ACCOMPLIE</h2>
-                    <p class="text-lg text-gray-700 max-w-xs text-center">Vous avez libéré les 5 dragons gardiens.</p>
-                </div>
+        <!-- Fin de Jeu -->
+        <div id="final-cinematic" class="absolute inset-0 bg-white flex flex-col items-center justify-center hidden z-50">
+             <div class="relative w-full h-full bg-red-50 flex flex-col items-center justify-center">
+                <div id="cine-ninja" class="absolute bottom-20 left-0 text-7xl transition-all duration-1000">🥷</div>
+                <div class="absolute bottom-20 right-20 text-7xl">🎎</div>
+                <div class="absolute bottom-0 w-full h-20 bg-green-900"></div>
+                <h2 class="text-5xl md:text-7xl font-black text-red-700 mb-6 text-center px-4">LÉGENDE ACCOMPLIE</h2>
+                <p class="text-xl md:text-2xl text-gray-700 max-w-md text-center px-6 italic">Vous avez libéré tous les dragons gardiens du Japon médiéval.</p>
+                <button onclick="location.reload()" class="mt-10 px-8 py-3 bg-gray-800 text-white rounded-full font-bold">REJOUER</button>
              </div>
         </div>
 
-        <!-- Contrôles Mobiles -->
-        <div id="mobile-controls" class="absolute bottom-4 left-4 right-4 flex justify-between pointer-events-none unselectable md:hidden">
-            <div class="flex gap-2 pointer-events-auto">
-                <button id="btn-left" class="w-14 h-14 bg-white bg-opacity-30 rounded-full flex items-center justify-center text-2xl">⬅️</button>
-                <button id="btn-right" class="w-14 h-14 bg-white bg-opacity-30 rounded-full flex items-center justify-center text-2xl">➡️</button>
+        <!-- Contrôles Mobiles Améliorés -->
+        <div id="mobile-controls" class="absolute bottom-6 left-6 right-6 flex justify-between pointer-events-none unselectable md:hidden">
+            <div class="flex gap-4 pointer-events-auto">
+                <button id="btn-left" class="w-20 h-20 bg-white bg-opacity-20 backdrop-blur-sm rounded-2xl flex items-center justify-center text-4xl border-2 border-white border-opacity-30">⬅️</button>
+                <button id="btn-right" class="w-20 h-20 bg-white bg-opacity-20 backdrop-blur-sm rounded-2xl flex items-center justify-center text-4xl border-2 border-white border-opacity-30">➡️</button>
             </div>
-            <div class="flex gap-2 pointer-events-auto">
-                <button id="btn-jump" class="w-16 h-16 bg-blue-500 bg-opacity-50 rounded-full flex items-center justify-center text-3xl">⬆️</button>
-                <button id="btn-shoot" class="w-16 h-16 bg-red-500 bg-opacity-50 rounded-full flex items-center justify-center text-3xl">✴️</button>
+            <div class="flex gap-4 pointer-events-auto">
+                <button id="btn-jump" class="w-20 h-20 bg-blue-600 bg-opacity-30 backdrop-blur-sm rounded-full flex items-center justify-center text-4xl border-2 border-blue-400">⬆️</button>
+                <button id="btn-shoot" class="w-20 h-20 bg-red-600 bg-opacity-30 backdrop-blur-sm rounded-full flex items-center justify-center text-4xl border-2 border-red-400">✴️</button>
             </div>
         </div>
     </div>
@@ -135,8 +170,34 @@
         const ctx = canvas.getContext('2d');
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
+        // Gestion du Responsive Canvas
+        const VIRTUAL_WIDTH = 800;
+        const VIRTUAL_HEIGHT = 450;
+
+        function resize() {
+            const container = document.getElementById('game-container');
+            const ratio = VIRTUAL_WIDTH / VIRTUAL_HEIGHT;
+            let w = container.clientWidth;
+            let h = container.clientHeight;
+
+            if (w / h > ratio) {
+                w = h * ratio;
+            } else {
+                h = w / ratio;
+            }
+
+            canvas.style.width = w + 'px';
+            canvas.style.height = h + 'px';
+            canvas.width = VIRTUAL_WIDTH;
+            canvas.height = VIRTUAL_HEIGHT;
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+
         function playSound(freq, type, duration, vol = 0.1) {
             try {
+                if (audioCtx.state === 'suspended') return;
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.type = type;
@@ -317,7 +378,6 @@
 
                 this.grounded = false;
                 
-                // Plateformes standard
                 state.platforms.forEach(p => {
                     if (this.x + this.w > p.x && this.x < p.x + p.w && this.y + this.h >= p.y && this.y + this.h <= p.y + 20 && this.vy >= 0) {
                         this.y = p.y - this.h;
@@ -326,7 +386,6 @@
                     }
                 });
 
-                // Cage solide tant que non libéré
                 if (!state.boss.freed) {
                     const c = state.cage;
                     if (this.x + this.w > c.x && this.x < c.x + c.w && this.y + this.h >= c.y && this.y + this.h <= c.y + 20 && this.vy >= 0) {
@@ -414,7 +473,6 @@
             for (let i = 0; i < 10; i++) {
                 state.platforms.push({ x: 300 + i * 220, y: 300 - (i % 3) * 40, w: 120, h: 20 });
             }
-            // Cage Position
             state.cage = { x: 2550, y: 310, w: 150, h: 100 };
             document.getElementById('level-val').innerText = state.level;
             updateUI();
@@ -521,12 +579,12 @@
             kb.innerHTML = '';
             "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split('').forEach(l => {
                 const b = document.createElement('button');
-                b.className = "bg-gray-100 p-1.5 text-sm rounded font-bold hover:bg-gray-200 border";
+                b.className = "bg-gray-100 p-2 text-sm md:text-base rounded-lg font-bold hover:bg-gray-200 border-2 transition-colors active:bg-gray-300";
                 b.innerText = l;
                 b.onclick = () => {
                     if (b.disabled) return;
                     b.disabled = true;
-                    b.className = "bg-gray-400 p-1.5 text-sm rounded font-bold text-white border";
+                    b.className = "bg-gray-400 p-2 text-sm md:text-base rounded-lg font-bold text-white border-2 border-gray-500 opacity-50";
                     if (state.word.includes(l)) {
                         state.guessed.push(l);
                         playSound(900, 'sine', 0.05, 0.05);
@@ -572,43 +630,54 @@
 
         function drawBackground() {
             ctx.fillStyle = "#87CEEB";
-            ctx.fillRect(0,0,800,450);
+            ctx.fillRect(0,0,VIRTUAL_WIDTH,VIRTUAL_HEIGHT);
+            
+            // Montagnes en arrière-plan
             ctx.fillStyle = "#5d8aa8";
-            for(let i=0; i<5; i++) {
-                let bx = (i * 800) - (state.cameraX * 0.2) % 800;
-                ctx.beginPath(); ctx.moveTo(bx, 450); ctx.lineTo(bx+400, 100); ctx.lineTo(bx+800, 450); ctx.fill();
+            for(let i=0; i<6; i++) {
+                let bx = (i * 600) - (state.cameraX * 0.15) % 600;
+                ctx.beginPath(); 
+                ctx.moveTo(bx - 200, VIRTUAL_HEIGHT); 
+                ctx.lineTo(bx + 100, 150); 
+                ctx.lineTo(bx + 400, VIRTUAL_HEIGHT); 
+                ctx.fill();
+            }
+
+            // Collines proches
+            ctx.fillStyle = "#2d5a27";
+            for(let i=0; i<8; i++) {
+                let bx = (i * 400) - (state.cameraX * 0.4) % 400;
+                ctx.beginPath();
+                ctx.arc(bx, VIRTUAL_HEIGHT + 50, 250, 0, Math.PI * 2);
+                ctx.fill();
             }
         }
 
         function gameLoop() {
             if (!state.playing) return;
             state.animationFrame++;
-            ctx.clearRect(0,0,800,450);
+            ctx.clearRect(0,0,VIRTUAL_WIDTH,VIRTUAL_HEIGHT);
             drawBackground();
             state.ninja.update();
             state.boss.update();
-            state.cameraX = Math.max(0, Math.min(state.ninja.x - 300, config.levelWidth - 800));
+            state.cameraX = Math.max(0, Math.min(state.ninja.x - 300, config.levelWidth - VIRTUAL_WIDTH));
 
             state.platforms.forEach(p => {
-                ctx.fillStyle = "#2d5a27"; ctx.fillRect(p.x - state.cameraX, p.y, p.w, p.h);
-                ctx.fillStyle = "#8b4513"; ctx.fillRect(p.x - state.cameraX, p.y + 5, p.w, p.h - 5);
+                ctx.fillStyle = "#386632"; ctx.fillRect(p.x - state.cameraX, p.y, p.w, p.h);
+                ctx.fillStyle = "#5c3c1e"; ctx.fillRect(p.x - state.cameraX, p.y + 6, p.w, p.h - 6);
             });
 
-            // Dessin de la cage
             if (!state.boss.freed) {
-                // Toit solide de la cage
                 ctx.fillStyle = "#444";
-                ctx.fillRect(state.cage.x - state.cameraX, state.cage.y - 10, state.cage.w, 15);
+                ctx.fillRect(state.cage.x - state.cameraX, state.cage.y - 12, state.cage.w, 18);
                 
-                // Barreaux
-                ctx.strokeStyle = "#333"; ctx.lineWidth = 4;
+                ctx.strokeStyle = "#222"; ctx.lineWidth = 5;
                 for(let i=0; i<6; i++) {
                     ctx.beginPath(); ctx.moveTo(state.cage.x + i*30 - state.cameraX, state.cage.y);
                     ctx.lineTo(state.cage.x + i*30 - state.cameraX, state.cage.y + state.cage.h); ctx.stroke();
                 }
-                // Base
                 ctx.fillStyle = "#222";
-                ctx.fillRect(state.cage.x - state.cameraX - 5, state.cage.y + state.cage.h, state.cage.w + 10, 10);
+                ctx.fillRect(state.cage.x - state.cameraX - 5, state.cage.y + state.cage.h, state.cage.w + 10, 12);
             }
 
             state.stars.forEach(s => { if(!s.collected) { ctx.font = "30px Arial"; ctx.fillText("⭐", s.x - state.cameraX, s.y); } });
@@ -617,10 +686,10 @@
             state.shurikens.forEach((s, i) => {
                 s.x += s.vx; s.angle += 0.5;
                 ctx.save(); ctx.translate(s.x - state.cameraX, s.y); ctx.rotate(s.angle);
-                ctx.fillStyle = "gray"; ctx.fillRect(-10, -2, 20, 4); ctx.fillRect(-2, -10, 4, 20); ctx.restore();
+                ctx.fillStyle = "#777"; ctx.fillRect(-12, -2, 24, 4); ctx.fillRect(-2, -12, 4, 24); ctx.restore();
             });
 
-            state.fireballs.forEach((f, i) => { f.x += f.vx; ctx.font = "24px Arial"; ctx.fillText("🔥", f.x - state.cameraX, f.y); });
+            state.fireballs.forEach((f, i) => { f.x += f.vx; ctx.font = "28px Arial"; ctx.fillText("🔥", f.x - state.cameraX, f.y); });
 
             state.ninja.draw();
             state.boss.draw();
@@ -631,9 +700,7 @@
 
         function animateFinal() {
             const ninjaCine = document.getElementById('cine-ninja');
-            let posX = 0;
-            function step() { posX += 4; ninjaCine.style.left = posX + 'px'; if (posX < window.innerWidth) requestAnimationFrame(step); }
-            step();
+            ninjaCine.style.left = '60%';
         }
 
         document.getElementById('btn-play').onclick = () => {
