@@ -88,7 +88,7 @@
 
         /* Correction des contrôles tactiles pour tablettes */
         #mobile-controls {
-            display: none; /* Masqué par défaut, affiché par JS si tactile */
+            display: none; /* Masqué par défaut, affiché par JS si tactile détecté */
         }
     </style>
 </head>
@@ -208,8 +208,18 @@
         const ctx = canvas.getContext('2d');
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-        // Détection du tactile (Tablettes + Mobiles)
-        const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0);
+        // DETECTION TACTILE ROBUSTE (Cible iPadOS qui s'identifie en Desktop)
+        function checkTouch() {
+            return (
+                ('ontouchstart' in window) || 
+                (navigator.maxTouchPoints > 0) || 
+                (navigator.msMaxTouchPoints > 0) ||
+                // Cas spécifique iPad Pro / iPadOS Safari Desktop mode
+                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+            );
+        }
+
+        const isTouchDevice = checkTouch();
         if (isTouchDevice) {
             document.getElementById('mobile-controls').style.display = 'flex';
         }
