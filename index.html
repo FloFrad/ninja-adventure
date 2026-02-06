@@ -105,7 +105,7 @@
             </div>
         </div>
 
-        <!-- Modale Mathématique Responsive -->
+        <!-- Modale Mathématique -->
         <div id="modal-math" class="absolute inset-0 bg-black bg-opacity-80 flex items-center justify-center hidden z-40 p-4">
             <div class="bg-white p-6 rounded-2xl text-center max-w-sm w-full shadow-2xl border-4 border-yellow-600">
                 <h2 class="text-lg font-bold mb-3 uppercase text-gray-500 tracking-widest">Énigme du Scribe</h2>
@@ -129,7 +129,7 @@
             </div>
         </div>
 
-        <!-- Modale Pendu Responsive -->
+        <!-- Modale Pendu -->
         <div id="modal-word" class="absolute inset-0 bg-black bg-opacity-80 flex items-center justify-center hidden z-40 p-4">
             <div class="bg-white p-8 rounded-2xl text-center max-w-lg w-full shadow-2xl border-4 border-gray-800">
                 <h2 class="text-2xl font-bold mb-4 text-gray-700">Défi du Silence</h2>
@@ -152,7 +152,7 @@
              </div>
         </div>
 
-        <!-- Contrôles Mobiles Améliorés -->
+        <!-- Contrôles Mobiles -->
         <div id="mobile-controls" class="absolute bottom-6 left-6 right-6 flex justify-between pointer-events-none unselectable md:hidden">
             <div class="flex gap-4 pointer-events-auto">
                 <button id="btn-left" class="w-20 h-20 bg-white bg-opacity-20 backdrop-blur-sm rounded-2xl flex items-center justify-center text-4xl border-2 border-white border-opacity-30">⬅️</button>
@@ -170,7 +170,7 @@
         const ctx = canvas.getContext('2d');
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-        // Gestion du Responsive Canvas
+        // Responsive Canvas
         const VIRTUAL_WIDTH = 800;
         const VIRTUAL_HEIGHT = 450;
 
@@ -225,7 +225,29 @@
                 playSound(200, 'sawtooth', 0.2, 0.2);
                 setTimeout(() => playSound(150, 'sawtooth', 0.4, 0.2), 150);
             },
-            bossFree: () => playSound(300, 'sawtooth', 0.5)
+            // Nouveau Rugissement Puissant
+            bossFree: () => {
+                const now = audioCtx.currentTime;
+                const baseFreq = 80;
+                
+                // Superposition de fréquences basses pour le rugissement
+                [baseFreq, baseFreq * 1.5, baseFreq * 0.8].forEach((f, i) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(f, now);
+                    osc.frequency.exponentialRampToValueAtTime(f / 2, now + 1.2);
+                    
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.linearRampToValueAtTime(0.4, now + 0.1);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 1.2);
+                    
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start();
+                    osc.stop(now + 1.2);
+                });
+            }
         };
 
         const state = {
@@ -439,11 +461,27 @@
                     }
                     return;
                 }
-                this.x += this.dir * (2 + state.level * 0.5);
+                
+                // Vitesse proportionnelle au niveau
+                this.x += this.dir * (1.5 + state.level * 0.4);
                 if (this.x < 2400 || this.x > 2850) this.dir *= -1;
+                
                 this.attackTimer++;
-                if (this.attackTimer > 100 - (state.level * 10)) {
-                    state.fireballs.push({ x: this.x + 40, y: this.y + 40, vx: (state.ninja.x < this.x ? -4 : 4), vy: 0 });
+                
+                // Difficulté progressive : le dragon tire plus souvent quand le niveau augmente
+                // Niveau 1 : environ toutes les 3-4 secondes
+                // Niveau 5 : environ toutes les 1.5 secondes
+                let fireRate = 180 - (state.level * 25); 
+                
+                if (this.attackTimer > fireRate) {
+                    // Vitesse de la boule de feu (plus lente au début)
+                    let fireSpeed = 3 + (state.level * 0.5);
+                    state.fireballs.push({ 
+                        x: this.x + 40, 
+                        y: this.y + 40, 
+                        vx: (state.ninja.x < this.x ? -fireSpeed : fireSpeed), 
+                        vy: 0 
+                    });
                     this.attackTimer = 0;
                 }
             }
@@ -632,7 +670,6 @@
             ctx.fillStyle = "#87CEEB";
             ctx.fillRect(0,0,VIRTUAL_WIDTH,VIRTUAL_HEIGHT);
             
-            // Montagnes en arrière-plan
             ctx.fillStyle = "#5d8aa8";
             for(let i=0; i<6; i++) {
                 let bx = (i * 600) - (state.cameraX * 0.15) % 600;
@@ -643,7 +680,6 @@
                 ctx.fill();
             }
 
-            // Collines proches
             ctx.fillStyle = "#2d5a27";
             for(let i=0; i<8; i++) {
                 let bx = (i * 400) - (state.cameraX * 0.4) % 400;
