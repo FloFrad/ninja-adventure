@@ -86,9 +86,18 @@
         }
         @keyframes fall { to { transform: translateY(100vh) rotate(360deg); } }
 
-        /* Correction des contrôles tactiles pour tablettes */
+        /* Contrôles tactiles masqués par défaut */
         #mobile-controls {
-            display: none; /* Masqué par défaut, affiché par JS si tactile détecté */
+            display: none; 
+        }
+        
+        /* Style du bouton bascule de manette */
+        #toggle-controls-btn {
+            pointer-events: auto;
+            transition: all 0.2s;
+        }
+        #toggle-controls-btn:active {
+            transform: scale(0.9);
         }
     </style>
 </head>
@@ -97,6 +106,7 @@
     <div id="game-container">
         <canvas id="gameCanvas"></canvas>
 
+        <!-- Transition Shuriken -->
         <div id="shuriken-transition">
             <svg width="100" height="100" viewBox="0 0 100 100" fill="currentColor" class="text-gray-800">
                 <path d="M50 0 L60 40 L100 50 L60 60 L50 100 L40 60 L0 50 L40 40 Z" />
@@ -104,12 +114,14 @@
             </svg>
         </div>
 
+        <!-- Ecran de départ -->
         <div id="start-screen" class="absolute inset-0 bg-black bg-opacity-90 flex flex-col items-center justify-center text-white z-50 p-6">
             <h1 class="text-5xl md:text-8xl font-bold mb-4 text-red-600 tracking-tighter uppercase italic text-center drop-shadow-lg">Ninja Adventure</h1>
             <p class="mb-10 text-xl md:text-2xl text-gray-300">Le Maître du Shinobi</p>
             <button id="btn-play" class="px-12 py-5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-full text-3xl transition-transform transform hover:scale-110 shadow-2xl">JOUER</button>
         </div>
 
+        <!-- Interface utilisateur -->
         <div id="ui-overlay" class="absolute top-4 left-4 right-4 flex justify-between items-start pointer-events-none hidden">
             <div class="flex flex-col gap-2">
                 <div id="health-bar" class="text-3xl md:text-4xl filter drop-shadow">🏮🏮🏮</div>
@@ -120,6 +132,11 @@
                     Niveau: <span id="level-val" class="text-red-400">1</span> / 5
                 </div>
             </div>
+
+            <!-- Bouton pour afficher/masquer les contrôles (Manette) -->
+            <button id="toggle-controls-btn" class="pointer-events-auto w-12 h-12 md:w-16 md:h-16 bg-gray-800 bg-opacity-80 rounded-full flex items-center justify-center text-2xl md:text-3xl border-2 border-gray-600 shadow-xl">
+                🎮
+            </button>
         </div>
 
         <!-- Modale Mathématique -->
@@ -149,14 +166,15 @@
         <div id="modal-word" class="absolute inset-0 bg-black bg-opacity-80 flex items-center justify-center hidden z-40 p-4">
             <div class="bg-white p-8 rounded-2xl text-center max-w-lg w-full shadow-2xl border-4 border-gray-800">
                 <h2 class="text-2xl font-bold mb-4 text-gray-700">Défi du Silence</h2>
-                <div id="hangman-word" class="text-3xl md:text-4xl tracking-[0.4em] font-mono mb-6 text-black font-black"></div>
+                <div id="hangman-word" class="text-3xl md:text-4xl tracking-[0.4em] font-mono mb-4 text-black font-black"></div>
+                <!-- Affichage de la solution en cas d'échec -->
+                <div id="hangman-solution" class="text-xl text-red-600 font-bold mb-4 h-8"></div>
                 <div id="hangman-tries" class="text-red-600 font-bold mb-6 text-lg">Erreurs: 0 / 10</div>
                 <div id="keyboard" class="grid grid-cols-7 md:grid-cols-9 gap-1.5 mb-6"></div>
-                <p id="word-reveal" class="text-xl text-red-700 font-black hidden bg-red-50 p-2 rounded"></p>
             </div>
         </div>
 
-        <!-- CINÉMATIQUE DE FIN -->
+        <!-- Cinématique de Fin -->
         <div id="final-cinematic" class="absolute inset-0 bg-gradient-to-b from-blue-300 to-green-100 hidden z-50 overflow-hidden">
              <div class="absolute bottom-20 w-full flex justify-around items-end">
                 <div class="text-7xl md:text-9xl opacity-80">🏠</div>
@@ -190,7 +208,7 @@
              </div>
         </div>
 
-        <!-- CONTRÔLES TACTILES (Adaptés Tablettes & Mobiles) -->
+        <!-- Contrôles Tactiles -->
         <div id="mobile-controls" class="absolute bottom-6 left-6 right-6 flex justify-between pointer-events-none unselectable">
             <div class="flex gap-3 md:gap-6 pointer-events-auto">
                 <button id="btn-left" class="w-16 h-16 md:w-24 md:h-24 bg-white bg-opacity-20 backdrop-blur-md rounded-2xl flex items-center justify-center text-3xl md:text-5xl border-2 border-white border-opacity-30">⬅️</button>
@@ -208,21 +226,17 @@
         const ctx = canvas.getContext('2d');
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-        // DETECTION TACTILE ROBUSTE (Cible iPadOS qui s'identifie en Desktop)
-        function checkTouch() {
-            return (
-                ('ontouchstart' in window) || 
-                (navigator.maxTouchPoints > 0) || 
-                (navigator.msMaxTouchPoints > 0) ||
-                // Cas spécifique iPad Pro / iPadOS Safari Desktop mode
-                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
-            );
-        }
+        // Logique de bascule des contrôles
+        const toggleBtn = document.getElementById('toggle-controls-btn');
+        const mobileControls = document.getElementById('mobile-controls');
+        let controlsVisible = false;
 
-        const isTouchDevice = checkTouch();
-        if (isTouchDevice) {
-            document.getElementById('mobile-controls').style.display = 'flex';
-        }
+        toggleBtn.onclick = () => {
+            controlsVisible = !controlsVisible;
+            mobileControls.style.display = controlsVisible ? 'flex' : 'none';
+            toggleBtn.style.backgroundColor = controlsVisible ? 'rgba(220, 38, 38, 0.8)' : 'rgba(31, 41, 55, 0.8)';
+            playSound(controlsVisible ? 600 : 400, 'sine', 0.1, 0.05);
+        };
 
         const VIRTUAL_WIDTH = 800;
         const VIRTUAL_HEIGHT = 450;
@@ -406,17 +420,6 @@
             setTimeout(() => document.getElementById('shuriken-transition').classList.remove('shuriken-animate'), 1500);
         }
 
-        function spawnSakura() {
-            const petal = document.createElement('div');
-            petal.className = 'sakura';
-            petal.style.left = Math.random() * 100 + 'vw';
-            petal.style.width = petal.style.height = (Math.random() * 10 + 5) + 'px';
-            petal.style.animationDuration = (Math.random() * 3 + 2) + 's';
-            petal.style.opacity = Math.random();
-            document.getElementById('final-cinematic').appendChild(petal);
-            setTimeout(() => petal.remove(), 5000);
-        }
-
         function startFinalCinematic() {
             playEndMusic();
             const hero = document.getElementById('cine-hero');
@@ -443,7 +446,16 @@
                 friend.style.transform = 'scale(1.2) translateX(-60px)'; 
                 overlay.style.opacity = '1'; 
                 document.getElementById('final-card').style.transform = 'scale(1)'; 
-                setInterval(spawnSakura, 100); 
+                setInterval(() => {
+                    const petal = document.createElement('div');
+                    petal.className = 'sakura';
+                    petal.style.left = Math.random() * 100 + 'vw';
+                    petal.style.width = petal.style.height = (Math.random() * 10 + 5) + 'px';
+                    petal.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                    petal.style.opacity = Math.random();
+                    document.getElementById('final-cinematic').appendChild(petal);
+                    setTimeout(() => petal.remove(), 5000);
+                }, 100); 
             }, 6000);
         }
 
@@ -455,18 +467,47 @@
             state.currentPuzzle = p; state.playing = false; 
             if (p.type === 'math') { 
                 const max = 10 * state.level; const a = Math.floor(Math.random() * max) + 5; const b = Math.floor(Math.random() * 20); 
-                state.mathAns = a + b; document.getElementById('math-question').innerText = `${a} + ${b} = ?`; 
+                state.mathAns = a + b; 
+                state.mathInput = ""; // Réinitialisation de la calculatrice
+                document.getElementById('math-display').innerText = ""; 
+                document.getElementById('math-question').innerText = `${a} + ${b} = ?`; 
                 document.getElementById('modal-math').classList.remove('hidden'); 
             } else { startHangman(); } 
         }
 
         function startHangman() {
             let available = state.wordBank.filter(w => !state.usedWords.includes(w)); if (available.length === 0) { state.usedWords = []; available = state.wordBank; }
-            state.word = available[Math.floor(Math.random() * available.length)]; state.guessed = []; state.tries = 10; updateHangmanUI(); document.getElementById('modal-word').classList.remove('hidden');
+            state.word = available[Math.floor(Math.random() * available.length)]; state.guessed = []; state.tries = 10; 
+            document.getElementById('hangman-solution').innerText = ""; // Vider la solution précédente
+            updateHangmanUI(); 
+            document.getElementById('modal-word').classList.remove('hidden');
             const kb = document.getElementById('keyboard'); kb.innerHTML = ''; "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split('').forEach(l => {
                 const b = document.createElement('button'); b.className = "bg-gray-100 p-2 text-sm rounded-lg font-bold border-2 active:bg-gray-300"; b.innerText = l;
-                b.onclick = () => { if (b.disabled) return; b.disabled = true; b.className = "bg-gray-400 p-2 opacity-50"; if (state.word.includes(l)) { state.guessed.push(l); playSound(900, 'sine', 0.05); } else { state.tries--; playSound(100, 'sawtooth', 0.1); } updateHangmanUI();
-                    const win = state.word.split('').every(char => state.guessed.includes(char)); if (win || state.tries <= 0) { if (win) sounds.puzzleWin(); else sounds.puzzleFail(); setTimeout(() => closePuzzle(win), 1000); } }; kb.appendChild(b);
+                b.onclick = () => { 
+                    if (b.disabled || state.tries <= 0) return; 
+                    b.disabled = true; 
+                    b.className = "bg-gray-400 p-2 opacity-50"; 
+                    if (state.word.includes(l)) { 
+                        state.guessed.push(l); 
+                        playSound(900, 'sine', 0.05); 
+                    } else { 
+                        state.tries--; 
+                        playSound(100, 'sawtooth', 0.1); 
+                    } 
+                    updateHangmanUI();
+                    const win = state.word.split('').every(char => state.guessed.includes(char)); 
+                    if (win || state.tries <= 0) { 
+                        if (win) {
+                            sounds.puzzleWin(); 
+                            setTimeout(() => closePuzzle(true), 1000);
+                        } else {
+                            sounds.puzzleFail();
+                            document.getElementById('hangman-solution').innerText = `Solution : ${state.word}`;
+                            setTimeout(() => closePuzzle(false), 1500); // Un peu plus long pour lire la réponse
+                        }
+                    } 
+                }; 
+                kb.appendChild(b);
             });
         }
         function updateHangmanUI() { document.getElementById('hangman-word').innerText = state.word.split('').map(l => state.guessed.includes(l) ? l : '_').join(''); document.getElementById('hangman-tries').innerText = `Erreurs: ${10 - state.tries} / 10`; }
@@ -505,7 +546,7 @@
         window.onkeydown = e => { state.keys[e.key] = true; };
         window.onkeyup = e => state.keys[e.key] = false;
 
-        // Configuration tactile robuste
+        // Configuration boutons tactiles
         const setupControl = (id, key) => {
             const el = document.getElementById(id);
             const start = (e) => { e.preventDefault(); state.keys[key] = true; };
@@ -514,6 +555,7 @@
             el.addEventListener('touchend', end, {passive: false});
             el.onmousedown = () => state.keys[key] = true;
             el.onmouseup = () => state.keys[key] = false;
+            el.onmouseleave = () => state.keys[key] = false;
         };
         setupControl('btn-left', 'left'); setupControl('btn-right', 'right'); setupControl('btn-jump', 'jump'); setupControl('btn-shoot', 'shoot');
     </script>
