@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#14161f">
+    <title>Ninja Adventure 3</title>
+    <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@700&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- Dégradés partagés par les lanternes de vie -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+        <radialGradient id="lantern-grad" cx="50%" cy="40%" r="65%">
+            <stop offset="0" stop-color="#ffb35c"/><stop offset="0.55" stop-color="#e5483c"/><stop offset="1" stop-color="#9c1f26"/>
+        </radialGradient>
+    </defs>
+</svg>
+
+<div id="game">
+    <canvas id="gameCanvas"></canvas>
+    <div id="flash"></div>
+
+    <!-- Zone cadrée sur le canvas (cinématique) -->
+    <div id="stage">
+        <section id="final-cinematic" class="hidden">
+            <div id="cine-friend-cage" class="cine-actor">
+                <div id="cine-cage">⛓️</div>
+                <div id="cine-friend">🥷</div>
+                <span class="cine-tag">AMI</span>
+            </div>
+            <div id="cine-royalty" class="cine-actor">
+                <div><span class="cine-tag gold">ROI</span>👑</div>
+                <div><span class="cine-tag pink">REINE</span>👸</div>
+            </div>
+            <div id="cine-villagers" class="cine-actor">
+                <div><span class="villager">👨‍🌾</span><span class="villager">👩‍🌾</span></div>
+                <div><span class="villager">👨‍🎨</span><span class="villager">👩‍🍳</span></div>
+            </div>
+            <div id="cine-hero" class="cine-actor">🥷</div>
+            <div id="cine-overlay">
+                <div id="final-card" class="card">
+                    <h2>Victoire totale</h2>
+                    <p>Le village est en paix !</p>
+                    <div id="final-gift">🎁</div>
+                    <button id="btn-replay" class="btn btn-primary">Rejouer</button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Transition shuriken -->
+    <div id="shuriken-transition">
+        <svg width="100" height="100" viewBox="0 0 100 100"><path fill="#14161f" d="M50 0 L60 40 L100 50 L60 60 L50 100 L40 60 L0 50 L40 40 Z"/><circle cx="50" cy="50" r="8" fill="#fff"/></svg>
+    </div>
+
+    <!-- Écran titre -->
+    <section id="start-screen" class="screen">
+        <div class="title-wrap">
+            <p class="kicker">Épisode 3 · Édition CE1</p>
+            <h1 class="logo"><span class="logo-1">Ninja</span><span class="logo-2">Adventure</span><i class="hanko">3</i></h1>
+            <p class="tagline">Le Maître du Shinobi</p>
+            <button id="btn-play" class="btn btn-primary btn-xl">Jouer</button>
+            <ul class="chips">
+                <li>🔢 Maths</li><li>📖 Français</li><li>🧩 Mémoire et logique</li><li>20 types d’énigmes</li>
+            </ul>
+            <p class="help"><kbd>←</kbd> <kbd>→</kbd> bouger &nbsp; <kbd>↑</kbd> sauter &nbsp; <kbd>Espace</kbd> lancer un shuriken</p>
+        </div>
+    </section>
+
+    <!-- Menu de départ : choix des types d'énigmes -->
+    <section id="setup-screen" class="screen scrollable hidden">
+        <div class="setup-wrap">
+            <h2 class="setup-title">Choisis tes énigmes</h2>
+            <p class="setup-sub">Coche les types d’énigmes qui apparaîtront pendant la partie.</p>
+            <div class="setup-actions">
+                <button class="btn-mini" id="setup-all">Tout cocher</button>
+                <button class="btn-mini" id="setup-none">Tout décocher</button>
+            </div>
+            <div id="setup-groups"></div>
+        </div>
+        <div class="setup-foot">
+            <button class="btn-ghost" id="setup-back">← Retour</button>
+            <span id="setup-count"></span>
+            <button class="btn btn-primary" id="setup-start">Commencer</button>
+        </div>
+    </section>
+
+    <!-- HUD -->
+    <header id="hud" class="hidden">
+        <div class="hud-left">
+            <div id="lives" class="glass" aria-label="Vies"></div>
+            <div class="glass chip-level">Niveau <b id="level-val">1</b><span>/ 5</span></div>
+        </div>
+        <div class="hud-center glass">
+            <div class="progress"><div id="score-fill"></div></div>
+            <div class="progress-row"><span id="objective">Gagne 100 points pour libérer le dragon</span><b><span id="score-val">0</span> / 100</b></div>
+        </div>
+        <div class="hud-right">
+            <button id="btn-mute" class="icon-btn glass" aria-label="Son">🔊</button>
+            <button id="toggle-controls-btn" class="icon-btn glass" aria-label="Manette">🎮</button>
+        </div>
+    </header>
+
+    <div id="banner"><h3 id="banner-title"></h3><p id="banner-sub"></p></div>
+
+    <!-- Fenêtre d'énigme -->
+    <div id="modal" class="screen hidden">
+        <div id="modal-card" class="card scroll-card">
+            <div class="card-head">
+                <span id="modal-icon" class="card-icon"></span>
+                <h2 id="modal-title"></h2>
+                <p id="modal-sub"></p>
+            </div>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <!-- Game over -->
+    <section id="gameover" class="screen hidden">
+        <div class="card">
+            <h2>Le ninja est tombé…</h2>
+            <p>Un vrai shinobi ne renonce jamais !</p>
+            <button id="btn-retry" class="btn btn-primary">Réessayer</button>
+            <button id="btn-menu" class="btn-ghost dark">Changer d’énigmes</button>
+        </div>
+    </section>
+
+    <!-- Contrôles tactiles -->
+    <div id="mobile-controls">
+        <div class="pad-group">
+            <button id="btn-left" class="pad-btn" aria-label="Gauche">◀</button>
+            <button id="btn-right" class="pad-btn" aria-label="Droite">▶</button>
+        </div>
+        <div class="pad-group">
+            <button id="btn-jump" class="pad-btn pad-round blue" aria-label="Sauter">▲</button>
+            <button id="btn-shoot" class="pad-btn pad-round red" aria-label="Lancer">✴</button>
+        </div>
+    </div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/render.js"></script>
+<script src="js/entities.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/puzzles/common.js"></script>
+<script src="js/puzzles/math.js"></script>
+<script src="js/puzzles/fractions.js"></script>
+<script src="js/puzzles/clock.js"></script>
+<script src="js/puzzles/money.js"></script>
+<script src="js/puzzles/sequence.js"></script>
+<script src="js/puzzles/compare.js"></script>
+<script src="js/puzzles/tens.js"></script>
+<script src="js/puzzles/length.js"></script>
+<script src="js/puzzles/shapes.js"></script>
+<script src="js/puzzles/hangman.js"></script>
+<script src="js/puzzles/scramble.js"></script>
+<script src="js/puzzles/missing.js"></script>
+<script src="js/puzzles/homophones.js"></script>
+<script src="js/puzzles/plural.js"></script>
+<script src="js/puzzles/conjugation.js"></script>
+<script src="js/puzzles/syllables.js"></script>
+<script src="js/puzzles/tictactoe.js"></script>
+<script src="js/puzzles/memory.js"></script>
+<script src="js/puzzles/maze.js"></script>
+<script src="js/puzzles/odd.js"></script>
+<script src="js/puzzles/registry.js"></script>
+<script src="js/puzzles/manager.js"></script>
+<script src="js/cinematic.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

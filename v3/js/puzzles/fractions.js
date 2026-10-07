@@ -60,24 +60,11 @@ const FractionPuzzle = {
         do { f = pick(set); } while (set.length > 1 && f.join('/') === this.last);
         this.last = f.join('/');
         const distractors = shuffle(this.pool.filter(p => p[0] / p[1] !== f[0] / f[1])).slice(0, 3);
-        const choices = shuffle([f, ...distractors]);
-        body.innerHTML = `
-            <div class="question">Quelle fraction est coloriée ?</div>
-            <div class="fig-wrap">${this.figure(f[0], f[1])}</div>
-            <div class="feedback" id="fr-feedback"></div>
-            <div class="choices">${choices.map((c, i) => `<button class="choice" data-i="${i}">${fracHTML(c[0], c[1])}</button>`).join('')}</div>`;
-        let locked = false;
-        const buttons = body.querySelectorAll('.choice');
-        buttons.forEach((b, i) => b.onclick = () => {
-            if (locked) return; locked = true;
-            const ok = choices[i] === f;
-            b.classList.add(ok ? 'right' : 'wrong');
-            if (!ok) buttons[choices.indexOf(f)].classList.add('right');
-            UI.cardFeedback(ok);
-            body.querySelector('#fr-feedback').textContent = ok ? 'Bravo !' : `C’était ${f[0]}/${f[1]}`;
-            if (ok) { sounds.puzzleWin(); setTimeout(() => finish('win'), 800); }
-            else { sounds.puzzleFail(); setTimeout(() => finish('lose'), 1800); }
-        });
-        UI.modalKeys = e => { const n = parseInt(e.key, 10); if (n >= 1 && n <= 4) buttons[n - 1].click(); };
+        buildChoices(body, {
+            question: 'Quelle fraction est coloriée ?',
+            figure: this.figure(f[0], f[1]),
+            choices: mixChoices(fracHTML(f[0], f[1]), distractors.map(d => fracHTML(d[0], d[1]))),
+            reveal: `C’était ${f[0]}/${f[1]}`
+        }, finish);
     }
 };

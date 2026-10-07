@@ -42,8 +42,9 @@ function buildNumeric(body, q, finish) {
 const MathPuzzle = {
     last: '',
     limits: { 1: 20, 2: 50, 3: 100, 4: 100, 5: 100 },
-    doubles: { 1: 10, 2: 20, 3: 50, 4: 100, 5: 100 },
-    tables: { 1: [], 2: [2, 5, 10], 3: [2, 3, 4, 5], 4: [2, 3, 4, 5, 6, 7, 8, 9], 5: [2, 3, 4, 5, 6, 7, 8, 9, 10] },
+    // Programme CE1 : tables de 2, 3, 4, 5 et 10 ; doubles jusqu'à 50
+    doubles: { 1: 10, 2: 20, 3: 30, 4: 40, 5: 50 },
+    tables: { 1: [], 2: [2, 5, 10], 3: [2, 3, 4, 5, 10], 4: [2, 3, 4, 5, 10], 5: [2, 3, 4, 5, 10] },
 
     // Retourne { html, answer } ; jamais deux fois la même question de suite
     generate(level) {
