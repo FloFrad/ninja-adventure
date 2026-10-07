@@ -14,8 +14,8 @@ const AZERTY_ROWS = ['AZERTYUIOP', 'QSDFGHJKLM', 'WXCVBN'];
 const Hangman = {
     entries: WORD_BANK.flatMap(c => c.words.split(' ').map(w => ({ w, hint: c.hint }))),
     used: [],
-    // Longueur visée selon le niveau
-    lengths: { 1: [3, 5], 2: [4, 6], 3: [5, 7], 4: [6, 9], 5: [7, 12] },
+    // Longueur visée selon le niveau (adaptée au CE1)
+    lengths: { 1: [3, 5], 2: [4, 6], 3: [5, 7], 4: [5, 8], 5: [6, 9] },
 
     pickWord(level) {
         let free = this.entries.filter(e => !this.used.includes(e.w));

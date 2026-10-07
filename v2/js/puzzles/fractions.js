@@ -1,12 +1,13 @@
 'use strict';
 
 const FractionPuzzle = {
+    // Programme CE1 : la moitié, le tiers et le quart (les autres fractions ne servent que de mauvaises réponses)
     sets: {
         1: [[1, 2]],
         2: [[1, 2], [1, 4]],
-        3: [[1, 2], [1, 4], [3, 4], [1, 3]],
-        4: [[1, 2], [1, 4], [3, 4], [1, 3], [2, 3]],
-        5: [[1, 2], [1, 4], [3, 4], [1, 3], [2, 3]]
+        3: [[1, 2], [1, 4], [1, 3]],
+        4: [[1, 2], [1, 4], [1, 3]],
+        5: [[1, 2], [1, 4], [1, 3]]
     },
     pool: [[1, 2], [1, 3], [2, 3], [1, 4], [3, 4], [1, 5]],
     last: '',
@@ -24,9 +25,9 @@ const FractionPuzzle = {
         let q;
         do {
             const kind = pick(kinds);
-            if (kind === 'half') { const a = rand(2, L === 3 ? 20 : 50) * 2; q = { label: 'La moitié', n: a, answer: a / 2, f: [1, 2] }; }
-            else if (kind === 'quarter') { const a = rand(2, L === 4 ? 10 : 25) * 4; q = { label: 'Le quart', n: a, answer: a / 4, f: [1, 4] }; }
-            else { const a = rand(2, L === 4 ? 12 : 20) * 3; q = { label: 'Le tiers', n: a, answer: a / 3, f: [1, 3] }; }
+            if (kind === 'half') { const a = rand(2, L === 3 ? 20 : 30) * 2; q = { label: 'La moitié', n: a, answer: a / 2, f: [1, 2] }; }
+            else if (kind === 'quarter') { const a = rand(2, L === 4 ? 10 : 15) * 4; q = { label: 'Le quart', n: a, answer: a / 4, f: [1, 4] }; }
+            else { const a = rand(2, L === 4 ? 10 : 15) * 3; q = { label: 'Le tiers', n: a, answer: a / 3, f: [1, 3] }; }
             q.html = `${q.label} de ${q.n}`;
         } while (q.html === this.last);
         this.last = q.html;
