@@ -8,6 +8,7 @@ function resizeCanvas() {
     const container = document.getElementById('game');
     const ratio = VW / VH;
     let w = container.clientWidth, h = container.clientHeight;
+    if (!w || !h) return; // conteneur masqué ou réduit à 0 : on garde la taille précédente
     if (w / h > ratio) w = h * ratio; else h = w / ratio;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
