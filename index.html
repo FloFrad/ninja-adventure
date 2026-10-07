@@ -30,7 +30,7 @@
         h1 { margin: 8px 0 6px; font: 700 clamp(44px, 11vw, 96px)/.95 var(--font-title); text-transform: uppercase; text-shadow: 0 5px 0 var(--laque-d), 0 10px 28px rgba(0, 0, 0, .45); }
         .tagline { margin: 0; font-weight: 700; font-size: clamp(15px, 2.6vw, 20px); color: #fde9d0; text-shadow: 0 2px 10px rgba(0, 0, 0, .5); }
 
-        .versions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; width: 100%; max-width: 860px; }
+        .versions { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 22px; width: 100%; max-width: 1100px; }
         .version {
             position: relative; display: flex; flex-direction: column; text-decoration: none; color: var(--text); border-radius: 22px; overflow: hidden;
             background: var(--paper); box-shadow: 0 20px 50px rgba(0, 0, 0, .45), inset 0 0 0 2px rgba(122, 74, 38, .25);
@@ -42,6 +42,7 @@
         .art { height: 150px; display: flex; align-items: flex-end; justify-content: center; gap: 14px; padding-bottom: 14px; font-size: 54px; position: relative; overflow: hidden; }
         .art::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 18px; background: linear-gradient(#58c25a, #2f9a45); }
         .art span { position: relative; z-index: 1; margin-bottom: 8px; filter: drop-shadow(0 4px 4px rgba(0, 0, 0, .3)); }
+        .v3 .art { background: linear-gradient(180deg, #0d0a33, #5a2a82 55%, #e0587a); }
         .v2 .art { background: linear-gradient(180deg, #10194a, #8a3f8f 60%, #ffae8a); }
         .v1 .art { background: linear-gradient(180deg, #87ceeb, #e0f6ff); }
         .badge { position: absolute; top: 12px; right: 12px; z-index: 2; background: var(--laque); color: #fff; font-weight: 900; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; padding: 5px 12px; border-radius: 999px; box-shadow: 0 3px 0 var(--laque-d); }
@@ -54,11 +55,12 @@
             margin-top: auto; align-self: stretch; text-align: center; padding: 13px 20px; border-radius: 999px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; color: #fff;
             background: linear-gradient(#ee5a4f, var(--laque) 55%, var(--laque-d)); box-shadow: 0 5px 0 #7d1a1a;
         }
+        .v2 .play { background: linear-gradient(#a04f9a, #7a3a8a 55%, #5a2a68); box-shadow: 0 5px 0 #3e1a4a; }
         .v1 .play { background: linear-gradient(#5a6fa8, #3b4f86 55%, #2c3c6a); box-shadow: 0 5px 0 #1c2748; }
         footer { margin-top: 28px; font-size: 13px; opacity: .8; text-align: center; }
 
         @media (max-width: 680px) {
-            .versions { grid-template-columns: 1fr; max-width: 440px; }
+            .versions { max-width: 440px; }
             .art { height: 120px; font-size: 44px; }
         }
         @media (prefers-reduced-motion: reduce) { .version { transition: none; } }
@@ -72,16 +74,31 @@
     </header>
 
     <main class="versions">
-        <a class="version v2" href="v2/">
+        <a class="version v3" href="v3/">
             <span class="badge">Nouveau</span>
+            <div class="art"><span>🥷</span><span>🕐</span><span>🧩</span></div>
+            <div class="body">
+                <h2>Version 3</h2>
+                <p class="sub">Édition CE1 · tu choisis tes énigmes</p>
+                <ul>
+                    <li>20 types d’énigmes à activer ou non</li>
+                    <li>Maths : heure, euros, suites, mesures, formes…</li>
+                    <li>Français : homophones, conjugaison, syllabes…</li>
+                    <li>Memory, labyrinthe, morpion, intrus</li>
+                </ul>
+                <span class="play">Jouer à la V3</span>
+            </div>
+        </a>
+
+        <a class="version v2" href="v2/">
             <div class="art"><span>🥷</span><span>⭕</span><span>🐉</span></div>
             <div class="body">
                 <h2>Version 2</h2>
-                <p class="sub">Nouvelle interface illustrée</p>
+                <p class="sub">Interface illustrée · niveau CE1</p>
                 <ul>
                     <li>Décors japonais en 5 ambiances</li>
                     <li>Morpion contre le Shinobi</li>
-                    <li>Additions, soustractions, multiplications, doubles</li>
+                    <li>Calcul (tables de 2 à 5 et 10), doubles</li>
                     <li>Fractions et pendu avec 180 mots</li>
                 </ul>
                 <span class="play">Jouer à la V2</span>
