@@ -67,8 +67,9 @@
             <h1 class="logo"><span class="logo-1">Ninja</span><span class="logo-2">Adventure</span><i class="hanko">3</i></h1>
             <p class="tagline">Le Maître du Shinobi</p>
             <button id="btn-play" class="btn btn-primary btn-xl">Jouer</button>
+            <button id="btn-setup" class="btn-setup"><span class="btn-setup-ico">🧩</span><span class="btn-setup-txt"><b>Choisir mes énigmes</b><small id="setup-summary"></small></span></button>
             <ul class="chips">
-                <li>🔢 Maths</li><li>📖 Français</li><li>🧩 Mémoire et logique</li><li>20 types d’énigmes</li>
+                <li>🔢 Maths</li><li>📖 Français</li><li>🧩 Mémoire et logique</li>
             </ul>
             <p class="help"><kbd>←</kbd> <kbd>→</kbd> bouger &nbsp; <kbd>↑</kbd> sauter &nbsp; <kbd>Espace</kbd> lancer un shuriken</p>
         </div>
@@ -78,7 +79,7 @@
     <section id="setup-screen" class="screen scrollable hidden">
         <div class="setup-wrap">
             <h2 class="setup-title">Choisis tes énigmes</h2>
-            <p class="setup-sub">Coche les types d’énigmes qui apparaîtront pendant la partie.</p>
+            <p class="setup-sub">Coche les types d’énigmes qui apparaîtront pendant la partie. Ton choix est mémorisé pour les prochaines parties.</p>
             <div class="setup-actions">
                 <button class="btn-mini" id="setup-all">Tout cocher</button>
                 <button class="btn-mini" id="setup-none">Tout décocher</button>
@@ -86,9 +87,8 @@
             <div id="setup-groups"></div>
         </div>
         <div class="setup-foot">
-            <button class="btn-ghost" id="setup-back">← Retour</button>
             <span id="setup-count"></span>
-            <button class="btn btn-primary" id="setup-start">Commencer</button>
+            <button class="btn btn-primary" id="setup-done">Valider</button>
         </div>
     </section>
 
@@ -128,7 +128,7 @@
             <h2>Le ninja est tombé…</h2>
             <p>Un vrai shinobi ne renonce jamais !</p>
             <button id="btn-retry" class="btn btn-primary">Réessayer</button>
-            <button id="btn-menu" class="btn-ghost dark">Changer d’énigmes</button>
+            <button id="btn-menu" class="btn-ghost dark">Menu principal</button>
         </div>
     </section>
 

@@ -41,7 +41,7 @@ Dans les énigmes, le clavier physique fonctionne aussi : chiffres, `Entrée` et
 
 ## V3 : choisir ses énigmes
 
-Après « Jouer », un menu liste les 20 types d'énigmes en trois familles. On coche ce que l'on veut travailler (par famille ou un par un), puis « Commencer ». Les parchemins de la partie ne proposent que les types cochés. Le choix est mémorisé dans le navigateur (`localStorage`).
+Sur l'écran titre, le bouton **« Choisir mes énigmes »** ouvre un menu qui liste les 20 types d'énigmes en trois familles. On coche ce que l'on veut travailler (par famille ou un par un), puis « Valider ». « Jouer » lance ensuite la partie avec ce choix : les parchemins ne proposent que les types cochés. Le choix est enregistré dès qu'on le modifie, et mémorisé dans le navigateur (`localStorage`) pour les prochaines parties. Au moins un type doit rester coché.
 
 | Famille | Énigmes |
 |---|---|

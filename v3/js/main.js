@@ -6,9 +6,7 @@ function startGame() {
     const lvl = parseInt(PARAMS.get('level'), 10);
     state.level = lvl >= 1 && lvl <= CFG.maxLevel ? lvl : 1;
     state.lives = CFG.maxLives;
-    const types = UI.selectedTypes();
-    Puzzles.setEnabled(types);
-    if (!PARAMS.get('types')) UI.saveSelection(types);
+    Puzzles.setEnabled(UI.selectedTypes());   // choix du menu (mémorisé), ou ?types= pour le debug
     $('start-screen').classList.add('hidden');
     $('setup-screen').classList.add('hidden');
     UI.showHUD(true);
@@ -98,7 +96,7 @@ window.addEventListener('keydown', e => {
     const k = e.key.toLowerCase();
     state.keys[k] = true;
     if (state.mode === 'play' && [' ', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(k)) e.preventDefault();
-    if (state.mode === 'title' && k === 'enter' && !$('start-screen').classList.contains('hidden')) UI.showSetup(true);
+    if (state.mode === 'title' && k === 'enter' && !$('start-screen').classList.contains('hidden')) startGame();
 });
 window.addEventListener('keyup', e => { state.keys[e.key.toLowerCase()] = false; });
 window.addEventListener('blur', () => { state.keys = {}; });
@@ -120,9 +118,9 @@ function boot() {
     window.addEventListener('resize', resizeCanvas);
 
     UI.buildSetup();
-    $('btn-play').onclick = () => UI.showSetup(true);
-    $('setup-back').onclick = () => UI.showSetup(false);
-    $('setup-start').onclick = startGame;
+    $('btn-play').onclick = startGame;
+    $('btn-setup').onclick = () => UI.showSetup(true);
+    $('setup-done').onclick = () => UI.showSetup(false);
     $('btn-retry').onclick = () => { UI.hideGameOver(); state.lives = CFG.maxLives; initLevel(); state.mode = 'play'; };
     $('btn-menu').onclick = () => location.reload();
     $('btn-replay').onclick = () => { Cinematic.stop(); location.reload(); };

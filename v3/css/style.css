@@ -520,3 +520,16 @@ kbd { display: inline-block; min-width: 26px; padding: 2px 7px; border-radius: 6
     .choices.symchoice .choice svg { max-width: 92px; }
     .choices.emoji .choice { min-height: 78px; font-size: 46px; }
 }
+
+/* Bouton « Choisir mes énigmes » de l'écran titre */
+.btn-setup {
+    display: inline-flex; align-items: center; gap: 12px; margin-top: 16px; padding: 10px 20px 10px 14px; border-radius: 18px;
+    background: rgba(255, 255, 255, .14); border: 2px solid rgba(255, 255, 255, .35); color: #fff; font-family: var(--font-ui); text-align: left;
+    -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); transition: background .15s, transform .1s;
+}
+.btn-setup:hover { background: rgba(255, 255, 255, .24); }
+.btn-setup:active { transform: scale(.97); }
+.btn-setup-ico { width: 42px; height: 42px; display: grid; place-items: center; font-size: 24px; border-radius: 12px; background: rgba(255, 255, 255, .2); }
+.btn-setup-txt { display: flex; flex-direction: column; line-height: 1.2; }
+.btn-setup-txt b { font-weight: 900; font-size: 16px; }
+.btn-setup-txt small { font-weight: 700; font-size: 12px; opacity: .85; }

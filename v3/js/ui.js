@@ -95,21 +95,30 @@ const UI = {
                 </div>
             </section>`).join('');
         const boxes = () => [...document.querySelectorAll('#setup-groups input')];
-        const update = () => {
+        // `persist` : vrai quand l'élève modifie un choix (on mémorise tout de suite)
+        const update = persist => {
             const n = boxes().filter(b => b.checked).length;
             $('setup-count').textContent = `${n} / ${PUZZLES.length} types choisis`;
-            $('setup-start').disabled = n === 0;
+            $('setup-done').disabled = n === 0;
+            UI.updateSummary();
+            if (persist && n > 0) UI.saveSelection(UI.selectedTypes());
         };
-        boxes().forEach(b => b.addEventListener('change', () => { sounds.tap(); update(); }));
+        boxes().forEach(b => b.addEventListener('change', () => { sounds.tap(); update(true); }));
         document.querySelectorAll('[data-toggle-cat]').forEach(btn => btn.onclick = () => {
             const group = boxes().filter(b => PUZZLE_BY_ID[b.value].cat === btn.dataset.toggleCat);
             const all = group.every(b => b.checked);
             group.forEach(b => { b.checked = !all; });
-            update();
+            update(true);
         });
-        $('setup-all').onclick = () => { boxes().forEach(b => { b.checked = true; }); update(); };
-        $('setup-none').onclick = () => { boxes().forEach(b => { b.checked = false; }); update(); };
-        update();
+        $('setup-all').onclick = () => { boxes().forEach(b => { b.checked = true; }); update(true); };
+        $('setup-none').onclick = () => { boxes().forEach(b => { b.checked = false; }); update(true); };
+        update(false);
+    },
+
+    // « 20 / 20 énigmes activées » sous le bouton de l'écran titre
+    updateSummary() {
+        const n = UI.selectedTypes().length;
+        $('setup-summary').textContent = n === PUZZLES.length ? `Toutes les énigmes (${n})` : `${n} / ${PUZZLES.length} énigmes activées`;
     },
 
     selectedTypes() { return [...document.querySelectorAll('#setup-groups input')].filter(b => b.checked).map(b => b.value); },
