@@ -137,4 +137,13 @@ function boot() {
     if (PARAMS.get('autostart')) startGame();
 }
 
-boot();
+// Si le démarrage échoue (typiquement : anciens fichiers gardés en cache après une mise à jour), on le dit clairement
+try {
+    boot();
+} catch (err) {
+    console.error(err);
+    const msg = document.createElement('div');
+    msg.style.cssText = 'position:fixed;inset:auto 12px 12px 12px;z-index:999;padding:14px 16px;border-radius:14px;background:#fff7e6;color:#2b2a33;font:700 15px/1.4 sans-serif;box-shadow:0 8px 30px rgba(0,0,0,.5);text-align:center';
+    msg.innerHTML = 'Le jeu n’a pas pu démarrer : une ancienne version est peut-être en mémoire.<br>Recharge la page sans le cache (Ctrl + Maj + R, ou Cmd + Maj + R sur Mac).';
+    document.body.appendChild(msg);
+}

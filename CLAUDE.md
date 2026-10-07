@@ -52,6 +52,7 @@ Chaque module de `puzzles/` expose `start(body, level, finish)` et appelle `fini
 - Réponses numériques : toujours des entiers positifs de 4 chiffres maximum (clavier limité à 4 chiffres).
 - Les fenêtres d'énigme doivent tenir dans un écran de ~640 px de haut (la fenêtre défile sinon) : garde les figures compactes et utilise `small` pour les longues questions.
 - Ne rajoute pas de dépendance ni d'étape de build. Les polices Google sont chargées avec repli sur des polices système.
+- **Cache GitHub Pages** : les navigateurs gardent JS et CSS ~10 min. Les `<script>` et la feuille de style de `v2/index.html` et `v3/index.html` portent un paramètre `?v=X.Y`. **Incrémente-le dans le `index.html` de la version modifiée à chaque changement de JS ou de CSS**, sinon un visiteur peut recevoir un nouvel HTML avec d'anciens scripts (démarrage cassé, boutons inactifs). `boot()` est protégé par un `try/catch` qui affiche alors un message demandant de recharger la page sans le cache.
 
 ## Git
 
