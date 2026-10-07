@@ -11,7 +11,7 @@ Le site propose un menu pour choisir sa version :
 
 ## Jouer
 
-En ligne : via GitHub Pages, la racine du site affiche le menu.
+En ligne : <https://flofrad.github.io/ninja-adventure/> (la racine du site affiche le menu).
 
 En local, depuis la racine du dépôt :
 
