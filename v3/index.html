@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@700&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css?v=3.1">
+    <link rel="stylesheet" href="css/style.css?v=3.2">
 </head>
 <body>
 
@@ -30,26 +30,31 @@
     <!-- Zone cadrée sur le canvas (cinématique) -->
     <div id="stage">
         <section id="final-cinematic" class="hidden">
-            <div id="cine-friend-cage" class="cine-actor">
-                <div id="cine-cage">⛓️</div>
-                <div id="cine-friend">🥷</div>
-                <span class="cine-tag">AMI</span>
-            </div>
-            <div id="cine-royalty" class="cine-actor">
-                <div><span class="cine-tag gold">ROI</span>👑</div>
-                <div><span class="cine-tag pink">REINE</span>👸</div>
-            </div>
-            <div id="cine-villagers" class="cine-actor">
-                <div><span class="villager">👨‍🌾</span><span class="villager">👩‍🌾</span></div>
-                <div><span class="villager">👨‍🎨</span><span class="villager">👩‍🍳</span></div>
-            </div>
-            <div id="cine-hero" class="cine-actor">🥷</div>
-            <div id="cine-overlay">
-                <div id="final-card" class="card">
-                    <h2>Victoire totale</h2>
-                    <p>Le village est en paix !</p>
-                    <div id="final-gift">🎁</div>
+            <div id="cine-cam"><div id="cine-world"></div><div id="cine-fx"></div></div>
+            <div id="cine-tint"></div>
+            <div id="cine-glow"></div>
+            <div id="cine-balloon" class="hidden"><span id="cine-name"></span><div id="cine-text"></div><span id="cine-next">▶</span></div>
+            <div id="cine-hint">Touche l’écran, Entrée ou Espace pour continuer</div>
+            <div class="cine-bar top"></div><div class="cine-bar bottom"></div>
+            <div id="cine-caption"></div>
+            <button id="cine-skip" type="button">Passer ▶▶</button>
+            <div id="cine-flash"></div>
+            <div id="cine-fade"></div>
+            <div id="cine-end">
+                <div class="end-stars"></div>
+                <div class="end-eyes"><i></i><i></i></div>
+                <p class="end-bravo">★ Bravo, tu as terminé les 5 niveaux ! ★</p>
+                <h2 class="end-title">À suivre…</h2>
+                <p class="end-sub">Ninja Adventure 4</p>
+                <p class="end-soon">Bientôt</p>
+                <div class="end-seals" aria-label="Un sceau brisé, six sceaux encore intacts">
+                    <span class="end-seal broken">封</span><span class="end-seal" style="--d:.1s">封</span><span class="end-seal" style="--d:.4s">封</span><span class="end-seal" style="--d:.7s">封</span>
+                    <span class="end-seal" style="--d:1s">封</span><span class="end-seal" style="--d:1.3s">封</span><span class="end-seal" style="--d:1.6s">封</span>
+                </div>
+                <p class="end-line">Un sceau est brisé… Six autres attendent Kaito.</p>
+                <div class="end-actions">
                     <button id="btn-replay" class="btn btn-primary">Rejouer</button>
+                    <button id="btn-again" class="btn-ghost">Revoir l’histoire</button>
                 </div>
             </div>
         </section>
@@ -145,35 +150,36 @@
     </div>
 </div>
 
-<script src="js/config.js?v=3.1"></script>
-<script src="js/audio.js?v=3.1"></script>
-<script src="js/render.js?v=3.1"></script>
-<script src="js/entities.js?v=3.1"></script>
-<script src="js/ui.js?v=3.1"></script>
-<script src="js/puzzles/common.js?v=3.1"></script>
-<script src="js/puzzles/math.js?v=3.1"></script>
-<script src="js/puzzles/fractions.js?v=3.1"></script>
-<script src="js/puzzles/clock.js?v=3.1"></script>
-<script src="js/puzzles/money.js?v=3.1"></script>
-<script src="js/puzzles/sequence.js?v=3.1"></script>
-<script src="js/puzzles/compare.js?v=3.1"></script>
-<script src="js/puzzles/tens.js?v=3.1"></script>
-<script src="js/puzzles/length.js?v=3.1"></script>
-<script src="js/puzzles/shapes.js?v=3.1"></script>
-<script src="js/puzzles/hangman.js?v=3.1"></script>
-<script src="js/puzzles/scramble.js?v=3.1"></script>
-<script src="js/puzzles/missing.js?v=3.1"></script>
-<script src="js/puzzles/homophones.js?v=3.1"></script>
-<script src="js/puzzles/plural.js?v=3.1"></script>
-<script src="js/puzzles/conjugation.js?v=3.1"></script>
-<script src="js/puzzles/syllables.js?v=3.1"></script>
-<script src="js/puzzles/tictactoe.js?v=3.1"></script>
-<script src="js/puzzles/memory.js?v=3.1"></script>
-<script src="js/puzzles/maze.js?v=3.1"></script>
-<script src="js/puzzles/odd.js?v=3.1"></script>
-<script src="js/puzzles/registry.js?v=3.1"></script>
-<script src="js/puzzles/manager.js?v=3.1"></script>
-<script src="js/cinematic.js?v=3.1"></script>
-<script src="js/main.js?v=3.1"></script>
+<script src="js/config.js?v=3.2"></script>
+<script src="js/audio.js?v=3.2"></script>
+<script src="js/render.js?v=3.2"></script>
+<script src="js/entities.js?v=3.2"></script>
+<script src="js/ui.js?v=3.2"></script>
+<script src="js/puzzles/common.js?v=3.2"></script>
+<script src="js/puzzles/math.js?v=3.2"></script>
+<script src="js/puzzles/fractions.js?v=3.2"></script>
+<script src="js/puzzles/clock.js?v=3.2"></script>
+<script src="js/puzzles/money.js?v=3.2"></script>
+<script src="js/puzzles/sequence.js?v=3.2"></script>
+<script src="js/puzzles/compare.js?v=3.2"></script>
+<script src="js/puzzles/tens.js?v=3.2"></script>
+<script src="js/puzzles/length.js?v=3.2"></script>
+<script src="js/puzzles/shapes.js?v=3.2"></script>
+<script src="js/puzzles/hangman.js?v=3.2"></script>
+<script src="js/puzzles/scramble.js?v=3.2"></script>
+<script src="js/puzzles/missing.js?v=3.2"></script>
+<script src="js/puzzles/homophones.js?v=3.2"></script>
+<script src="js/puzzles/plural.js?v=3.2"></script>
+<script src="js/puzzles/conjugation.js?v=3.2"></script>
+<script src="js/puzzles/syllables.js?v=3.2"></script>
+<script src="js/puzzles/tictactoe.js?v=3.2"></script>
+<script src="js/puzzles/memory.js?v=3.2"></script>
+<script src="js/puzzles/maze.js?v=3.2"></script>
+<script src="js/puzzles/odd.js?v=3.2"></script>
+<script src="js/puzzles/registry.js?v=3.2"></script>
+<script src="js/puzzles/manager.js?v=3.2"></script>
+<script src="js/cine-art.js?v=3.2"></script>
+<script src="js/cinematic.js?v=3.2"></script>
+<script src="js/main.js?v=3.2"></script>
 </body>
 </html>

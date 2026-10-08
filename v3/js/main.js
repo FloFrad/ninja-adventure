@@ -45,12 +45,12 @@ function nextLevel() {
     setTimeout(() => el.classList.remove('animate'), 1500);
 }
 
-function startWin() {
-    state.mode = 'win';
-    Background.setTheme(1);
+function startWin(scene = 0) {
+    state.mode = 'win'; state.keys = {};
+    state.platforms = [{ x: 0, y: CFG.groundY, w: CFG.levelWidth, h: 40 }];   // plus de plateformes flottantes derrière la cinématique
     UI.showHUD(false);
     $('mobile-controls').classList.remove('on');
-    Cinematic.start();
+    Cinematic.start(scene);
 }
 
 function gameOver() {
@@ -67,8 +67,10 @@ function stepOnce() {
         updateWorld();
         updateParticles();
         if (state.shake > 0) state.shake--;
-    } else if (state.mode === 'title' || state.mode === 'win') {
+    } else if (state.mode === 'title') {
         state.cameraX = 1100 - 1100 * Math.cos(state.tick * 0.0015);
+    } else if (state.mode === 'win') {
+        Cinematic.update();
     } else {
         updateParticles();
         if (state.shake > 0) state.shake--;
@@ -91,6 +93,11 @@ window.addEventListener('keydown', e => {
             UI.modalKeys(e);
             if (e.key.length === 1 || e.key === 'Enter' || e.key === 'Backspace' || e.key.startsWith('Arrow')) e.preventDefault();
         }
+        return;
+    }
+    if (state.mode === 'win') {   // cinématique : Entrée, Espace ou → font avancer le dialogue, Échap la saute
+        if (['Enter', ' ', 'ArrowRight'].includes(e.key)) { e.preventDefault(); if (!e.repeat) { initAudio(); Cinematic.advance(); } }
+        else if (e.key === 'Escape') Cinematic.skip();
         return;
     }
     const k = e.key.toLowerCase();
@@ -123,7 +130,6 @@ function boot() {
     $('setup-done').onclick = () => UI.showSetup(false);
     $('btn-retry').onclick = () => { UI.hideGameOver(); state.lives = CFG.maxLives; initLevel(); state.mode = 'play'; };
     $('btn-menu').onclick = () => location.reload();
-    $('btn-replay').onclick = () => { Cinematic.stop(); location.reload(); };
 
     const controls = $('mobile-controls'), toggle = $('toggle-controls-btn');
     const setControls = on => { controls.classList.toggle('on', on); toggle.classList.toggle('active', on); };
@@ -140,7 +146,10 @@ function boot() {
 
     lastTime = performance.now();
     requestAnimationFrame(loop);
-    if (PARAMS.get('autostart')) startGame();   // ex. ?autostart=1&level=3&types=heure,suite
+    if (PARAMS.get('cine')) {   // ex. ?cine=1&scene=3 : ouvre directement la cinématique de fin (scène 0 à 3)
+        $('start-screen').classList.add('hidden');
+        startWin(clamp(parseInt(PARAMS.get('scene'), 10) || 0, 0, 3));
+    } else if (PARAMS.get('autostart')) startGame();   // ex. ?autostart=1&level=3&types=heure,suite
 }
 
 // Si le démarrage échoue (typiquement : anciens fichiers gardés en cache après une mise à jour), on le dit clairement

@@ -38,6 +38,7 @@ Dans les énigmes, le clavier physique fonctionne aussi : chiffres, `Entrée` et
 1. Parcourir le niveau, ramasser les étoiles (+5) et ouvrir les parchemins (+20 ; +10 pour un match nul au morpion).
 2. À 100 points, la cage s'ouvre et le dragon attaque : sautez dessus ou lancez des shurikens (3 coups).
 3. Cinq niveaux, avec une difficulté croissante et un décor différent à chaque fois. Trois vies (lanternes).
+4. Après le niveau 5, une cinématique de fin raconte la suite de l'histoire (V3 : voir ci-dessous).
 
 ## V3 : choisir ses énigmes
 
@@ -51,6 +52,20 @@ Sur l'écran titre, le bouton **« Choisir mes énigmes »** ouvre un menu qui l
 
 La difficulté de chaque énigme monte avec le niveau (1 à 5) : par exemple l'heure passe des heures pile aux quarts d'heure, puis à la lecture inverse (choisir la bonne horloge).
 
+## L'histoire de fin (V3)
+
+Après le dernier dragon, une cinématique de 4 scènes (environ 2 minutes) se termine par un cliffhanger : **« À suivre… Ninja Adventure 4 »**. On avance en touchant l'écran (ou `Entrée` / `Espace`), le bouton « Passer » saute à la fin.
+
+| Scène | Décor | Ce qui se passe |
+|---|---|---|
+| 1. L'aube | aube sur le village | Kaito brise la cage de Hana. Le sceau 封 de la cage tombe et se casse : une fumée violette s'échappe (personne ne la remarque). Ryu, le dragon, se réveille les yeux rouges puis le sort se brise : ses yeux redeviennent dorés. |
+| 2. Le retour | plein jour | Le village fête les héros. Le roi offre à Kaito un **rouleau doré**. |
+| 3. La fête | crépuscule, feux d'artifice | Hana remarque que le rouleau porte le même signe que sa cage. Le roi balaie ses doutes : « Ce soir, on danse ! » |
+| 4. La nuit | nuit de lune | Le vent éteint le feu, la lune devient rouge, le rouleau s'ouvre : **Kage, le Maître de l'Ombre** apparaît, remercie Kaito d'avoir « brisé le premier sceau », annonce qu'il en reste six, reprend le rouleau et disparaît. |
+| Fin | « À suivre… » | Sept sceaux, un seul brisé. Boutons « Rejouer » et « Revoir l'histoire ». |
+
+Personnages : **Kaito** (le ninja, héros), **Hana** (la kunoichi, son amie), **Ryu** (le dragon), le **Roi** et la **Reine**, des villageois (paysan, cuisinière, artiste, mamie, Taro l'enfant) et **Kage** (masque de renard). Pour une suite : Kage cherche les six autres sceaux, le rouleau doré est entre ses mains, Ryu et Hana sont les alliés de Kaito.
+
 ## Paramètres de debug (V2 et V3)
 
 À ajouter à l'adresse de `v2/` ou `v3/` :
@@ -61,6 +76,7 @@ La difficulté de chaque énigme monte avec le niveau (1 à 5) : par exemple l'h
 | `?level=3` | démarre au niveau 3 (1 à 5) |
 | `?puzzle=morpion` | tous les parchemins sont de ce type |
 | `?types=heure,suite` | (V3) types d'énigmes activés, séparés par des virgules |
+| `?cine=1&scene=3` | (V3) ouvre directement la cinématique de fin, à la scène 0 (aube), 1, 2 ou 3 (nuit) |
 
 Identifiants V2 : `math`, `fraction`, `word`, `morpion`. V3 : `math`, `fraction`, `heure`, `monnaie`, `suite`, `comparer`, `dizaines`, `longueur`, `formes`, `word`, `melange`, `lettre`, `homophone`, `pluriel`, `conjugaison`, `syllabes`, `morpion`, `memory`, `labyrinthe`, `intrus`.
 
@@ -78,11 +94,12 @@ v3/                   V3 : copie de la V2 + 16 nouvelles énigmes + menu de choi
   css/style.css       design system
   js/
     config.js         constantes, état global, utilitaires
-    audio.js          sons synthétisés (Web Audio)
+    audio.js          sons et musiques synthétisés (Web Audio)
     render.js         canvas HD, décor en parallaxe, 5 thèmes, particules
     entities.js       ninja, dragon, niveau, collisions, dessins
     ui.js             HUD, bannière, fenêtre d'énigme, menu de choix
-    cinematic.js      cinématique de fin
+    cine-art.js       dessins SVG de la cinématique (personnages, décors)
+    cinematic.js      cinématique de fin : 4 scènes, dialogues, écran « À suivre… »
     main.js           boucle de jeu (pas fixe 60 Hz), entrées, démarrage
     puzzles/
       common.js       clavier numérique, choix multiples, utilitaires
