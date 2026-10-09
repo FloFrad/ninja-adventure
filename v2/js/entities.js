@@ -61,7 +61,7 @@ class Dragon {
         this.freed = false; this.dir = 1; this.attackTimer = 0; this.hitCd = 0; this.charging = false;
     }
 
-    fireRate() { return 180 - state.level * 25; }
+    fireRate() { return 270 - state.level * 25; }
 
     update() {
         if (state.mode !== 'play') return;
@@ -74,12 +74,12 @@ class Dragon {
             }
             return;
         }
-        this.x += this.dir * (1.5 + state.level * 0.4);
+        this.x += this.dir * (1.0 + state.level * 0.2);
         if (this.x < 2400 || this.x > 2850) this.dir *= -1;
         this.attackTimer++;
         this.charging = this.attackTimer > this.fireRate() - 25;
         if (this.attackTimer > this.fireRate()) {
-            const speed = 3 + state.level * 0.5;
+            const speed = 2.5 + state.level * 0.3;
             const toLeft = state.ninja.x < this.x;
             state.fireballs.push({ x: this.x + 40 + (toLeft ? -30 : 30), y: this.y + 28, vx: toLeft ? -speed : speed, vy: 0 });
             this.attackTimer = 0; this.charging = false;
